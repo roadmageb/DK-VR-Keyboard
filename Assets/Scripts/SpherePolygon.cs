@@ -12,9 +12,9 @@ public class SpherePolygon
     /// List of List(index of vertices) polygons
     /// two adjacent indices form an edge
     /// </summary>
-    private Dictionary<KeyCode, List<int>> polygons;
+    public Dictionary<KeyCode, List<int>> polygons;
 
-    public void InitPolygons(List<Vector2> _vertices, Dictionary<KeyCode, List<int>> _polygons)
+    public SpherePolygon (List<Vector2> _vertices, Dictionary<KeyCode, List<int>> _polygons)
     {
         vertices = new List<Vector2>(_vertices);
         polygons = new Dictionary<KeyCode, List<int>>(_polygons);
