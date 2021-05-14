@@ -4,16 +4,17 @@ using UnityEngine;
 
 public class Manager : Singleton<Manager>
 {
+    public float defaultKeyboardScale;
     [SerializeField] private Texture2D[] presets;
     [SerializeField] private KeyCode[] leftKeyCodes, rightKeyCodes;
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="hand">F/T:Left/Right</param>
+    /// <param name="hand"></param>
     /// <param name="scale"></param>
-    public SpherePolygon DefaultKeyBoard(bool hand, float scale)
+    public SpherePolygon DefaultKeyBoard(Hand hand, float scale)
     {
-        int handidx = hand ? 1 : 0;
+        int handidx = hand==Hand.Left ? 0 : 1;
         Vector2 centerPoint = new Vector2();
 
         List<Vector2> vertices = new List<Vector2>();
@@ -59,20 +60,15 @@ public class Manager : Singleton<Manager>
                 }
                 pos += dirVec[dir];
             }
-            polygons.Add(hand?rightKeyCodes[codeidx++]:leftKeyCodes[codeidx++], arr);
-        }
 
-        foreach (Vector2 vertex in vertices)
+            polygons.Add(hand==Hand.Left? leftKeyCodes[codeidx++]: rightKeyCodes[codeidx++], arr);
+        }
+        for (int i = 0; i < vertices.Count; i++)
         {
-            Vector2 v = vertex;
-            v -= centerPoint;
-            v *= scale;
+            vertices[i] -= centerPoint;
+            vertices[i] *= scale;
         }
 
         return new SpherePolygon(vertices, polygons);
-    }
-
-    private void Start()
-    {
     }
 }

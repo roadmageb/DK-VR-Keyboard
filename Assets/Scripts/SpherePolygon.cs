@@ -7,7 +7,7 @@ public class SpherePolygon
     /// <summary>
     /// List of (theta, phi) vertices
     /// </summary>
-    private List<Vector2> vertices;
+    public List<Vector2> vertices;
     /// <summary>
     /// List of List(index of vertices) polygons
     /// two adjacent indices form an edge

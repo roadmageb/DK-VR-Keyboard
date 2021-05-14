@@ -1,0 +1,16 @@
+{
+  "source": "Unity",
+  "applications": [
+    {
+      "app_key": "application.generated.unity.dkvrkeyboard.exe",
+      "launch_type": "url",
+      "url": "steam://launch/",
+      "action_manifest_path": "C:\\Users\\RoadMageB\\Documents\\lab\\DK-VR-Keyboard\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "strings": {
+        "en_us": {
+          "name": "DK-VR-Keyboard [Testing]"
+        }
+      }
+    }
+  ]
+}
