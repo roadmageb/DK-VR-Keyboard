@@ -4,15 +4,40 @@ using UnityEngine;
 
 public class Manager : Singleton<Manager>
 {
-    public float defaultKeyboardScale;
+    public ControllerPointer[] controllerPointers { get; private set; }
+    public bool[] entryExitTrigger;
+
+    public Vector2 defaultKeyboardScale;
     [SerializeField] private Texture2D[] presets;
     [SerializeField] private KeyCode[] leftKeyCodes, rightKeyCodes;
+
+    private EntryState _entryState;
+    public EntryState entryState
+    {
+        get { return _entryState; }
+        set { foreach (ControllerPointer p in controllerPointers) p.ChangeState(value); _entryState = value; }
+    }
+
+    public void InitContorllerPointer(Hand hand, ControllerPointer instance)
+    {
+        if(controllerPointers == null) controllerPointers = new ControllerPointer[2];
+        controllerPointers[(int)hand] = instance;
+    }
+
+    public void SetCurrentTextBox(TextEntryBox textBox)
+    {
+        foreach(ControllerPointer p in controllerPointers)
+        {
+            p.SetCurrentTextBox(textBox);
+        }
+    }
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="hand"></param>
     /// <param name="scale"></param>
-    public SpherePolygon DefaultKeyBoard(Hand hand, float scale)
+    public SpherePolygon DefaultKeyBoard(Hand hand, Vector2 scale)
     {
         int handidx = hand==Hand.Left ? 0 : 1;
         Vector2 centerPoint = new Vector2();
@@ -70,5 +95,11 @@ public class Manager : Singleton<Manager>
         }
 
         return new SpherePolygon(vertices, polygons);
+    }
+
+    private void Start()
+    {
+        entryExitTrigger = new bool[2];
+        entryState = EntryState.Select;
     }
 }

@@ -6,18 +6,24 @@ using Valve.VR;
 public class ControllerPointer : MonoBehaviour
 {
     [SerializeField] private Hand hand;
-    public SteamVR_Input_Sources input;
-    public SteamVR_Action_Boolean grabButton;
+    [SerializeField] private SteamVR_Input_Sources input;
+    [SerializeField] private SteamVR_Action_Boolean grabButton;
 
-    public Transform keyboardAxis;
+    private TextEntryBox currentTextBox;
     private SpherePolygon myPolygon;
+
+    [SerializeField] private Transform centerRay, forwardRay;
+    [SerializeField] private TextMesh text;
+    [SerializeField] private Transform cam;
+
+    private EntryState entryState;
 
     public bool GetPointedKey(out KeyCode key)
     {
         Vector3 direction = transform.forward, xzdirection;
         float theta, phi;
 
-        direction = keyboardAxis.InverseTransformDirection(direction);
+        direction = currentTextBox.transform.InverseTransformDirection(direction);
         xzdirection = direction;
         xzdirection.y = 0;
 
@@ -27,7 +33,7 @@ public class ControllerPointer : MonoBehaviour
         return myPolygon.GetPointedKey(new Vector2(theta, phi), out key);
     }
 
-    private void SetDefaultKeyboard(float scale)
+    private void SetDefaultKeyboard(Vector2 scale)
     {
         myPolygon = Manager.Inst.DefaultKeyBoard(hand, scale);
     }
@@ -38,25 +44,68 @@ public class ControllerPointer : MonoBehaviour
     }
     private void Update()
     {
-        if(grabButton.GetLastStateDown(input))
+        if(entryState == EntryState.Input)
         {
-            if(GetPointedKey(out KeyCode key))
+            centerRay.rotation = currentTextBox.transform.rotation;
+
+            if (GetPointedKey(out KeyCode key))
             {
-                Debug.Log(hand + " " + key);
+                if (grabButton.GetLastStateDown(input))
+                {
+                    currentTextBox.ProcessKeyCode(key);
+                    Manager.Inst.entryExitTrigger[(int)hand] = false;
+                }
+                text.text = key.ToString();
+                text.transform.LookAt(cam, Vector3.up);
+            }
+            else
+            {
+                if (grabButton.GetLastStateDown(input))
+                {
+                    if (Manager.Inst.entryExitTrigger[1 - (int)hand]) Manager.Inst.entryState = EntryState.Select;
+                    else Manager.Inst.entryExitTrigger[(int)hand] = true;
+                }
+                text.text = "";
+            }
+        }
+        else if(entryState == EntryState.Select)
+        {
+            if(hand == Hand.Left && grabButton.GetLastStateDown(input))
+            {
+                RaycastHit hit;
+                if (Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity))
+                {
+                    TextEntryBox t = hit.transform.GetComponent<TextEntryBox>();
+                    if (t != null) Manager.Inst.SetCurrentTextBox(t);
+                    Manager.Inst.entryState = EntryState.Input;
+                }
             }
         }
     }
     private void Start()
     {
+        Manager.Inst.InitContorllerPointer(hand, this);
         SetDefaultKeyboard();
-        if(hand == Hand.Left)
+    }
+
+    public void ChangeState(EntryState newState)
+    {
+        entryState = newState;
+        if(entryState == EntryState.Select)
         {
-            string str = "";
-            foreach(int i in myPolygon.polygons[KeyCode.D])
-            {
-                str += myPolygon.vertices[i] + " ";
-            }
-            Debug.Log(str);
+            centerRay.gameObject.SetActive(false);
+            forwardRay.gameObject.SetActive(false);
+            Manager.Inst.entryExitTrigger[(int)hand] = false;
         }
+        else if(entryState == EntryState.Input)
+        {
+            centerRay.gameObject.SetActive(true);
+            forwardRay.gameObject.SetActive(true);
+        }
+    }
+
+    public void SetCurrentTextBox(TextEntryBox textBox)
+    {
+        currentTextBox = textBox;
     }
 }
