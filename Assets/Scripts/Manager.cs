@@ -1,13 +1,21 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class Manager : Singleton<Manager>
 {
-    public ControllerPointer[] controllerPointers { get; private set; }
+    private string jsonPath;
+
+    public KeyCodeStringPair[] keycodeTranslation;
+    public Dictionary<KeyCode, string> keycodeStringDict;
+    public ControllerPointer[] controllerPointers { get; private set; } = new ControllerPointer[2];
     public bool[] entryExitTrigger;
 
+    [SerializeField] private bool defaultSet;
     public Vector2 defaultKeyboardScale;
+    private Vector2 currentKeyboardScale;
     [SerializeField] private Texture2D[] presets;
     [SerializeField] private KeyCode[] leftKeyCodes, rightKeyCodes;
 
@@ -15,12 +23,11 @@ public class Manager : Singleton<Manager>
     public EntryState entryState
     {
         get { return _entryState; }
-        set { foreach (ControllerPointer p in controllerPointers) p.ChangeState(value); _entryState = value; }
+        set { foreach (ControllerPointer p in controllerPointers) if(p != null) p.ChangeState(value); _entryState = value; }
     }
 
     public void InitContorllerPointer(Hand hand, ControllerPointer instance)
     {
-        if(controllerPointers == null) controllerPointers = new ControllerPointer[2];
         controllerPointers[(int)hand] = instance;
     }
 
@@ -32,12 +39,46 @@ public class Manager : Singleton<Manager>
         }
     }
 
+    public SpherePolygon GetKeyboard(Hand hand)
+    {
+        if (!defaultSet)
+        {
+            try
+            {
+                string str = File.ReadAllText(jsonPath);
+                KeyboardJson keyJson = JsonUtility.FromJson<KeyboardJson>(str);
+                SpherePolygon safeDefault = DefaultKeyboard(hand, keyJson.originScale);
+                currentKeyboardScale = keyJson.originScale;
+
+                return new SpherePolygon(new List<Vector2>(hand == Hand.Left ? keyJson.leftVertices : keyJson.rightVertices), safeDefault.polygons, safeDefault.safeDistance);
+            }
+            catch (DirectoryNotFoundException)
+            {
+                defaultSet = true;
+            }
+            catch (FileNotFoundException)
+            {
+                defaultSet = true;
+            }
+        }
+        currentKeyboardScale = defaultKeyboardScale;
+        return DefaultKeyboard(hand, defaultKeyboardScale);
+    }
+    public void SaveKeyboard()
+    {
+        KeyboardJson keyJson = new KeyboardJson(currentKeyboardScale, controllerPointers[0].myPolygon.vertices.ToArray(), controllerPointers[1].myPolygon.vertices.ToArray());
+
+        string dir = jsonPath.Substring(0, jsonPath.LastIndexOf('/') + 1);
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        File.WriteAllText(jsonPath, JsonUtility.ToJson(keyJson));
+    }
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="hand"></param>
     /// <param name="scale"></param>
-    public SpherePolygon DefaultKeyBoard(Hand hand, Vector2 scale)
+    public SpherePolygon DefaultKeyboard(Hand hand, Vector2 scale)
     {
         int handidx = hand==Hand.Left ? 0 : 1;
         Vector2 centerPoint = new Vector2();
@@ -94,12 +135,37 @@ public class Manager : Singleton<Manager>
             vertices[i] *= scale;
         }
 
-        return new SpherePolygon(vertices, polygons);
+        float[,] safeDistance = new float[vertices.Count, vertices.Count];
+
+        for(int i = 0; i < vertices.Count; i++)
+        {
+            for(int j = 0; j < vertices.Count; j++)
+            {
+                safeDistance[i, j] = Vector2.Distance(vertices[i], vertices[j]) * 0.8f;
+            }
+        }
+
+        return new SpherePolygon(vertices, polygons, safeDistance);
     }
 
     private void Start()
     {
+        KeycodeStringDictInit();
         entryExitTrigger = new bool[2];
         entryState = EntryState.Select;
+        jsonPath = Application.persistentDataPath + "/savedata/data.json";
+        Debug.Log(jsonPath);
     }
+    private void KeycodeStringDictInit()
+    {
+        keycodeStringDict = new Dictionary<KeyCode, string>();
+        foreach (KeyCodeStringPair p in keycodeTranslation) keycodeStringDict.Add(p.keycode, p.str);
+    }
+}
+
+[Serializable]
+public class KeyCodeStringPair
+{
+    public KeyCode keycode;
+    public string str;
 }

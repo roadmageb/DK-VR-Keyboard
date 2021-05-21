@@ -5,12 +5,12 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class TextEntryBox : MonoBehaviour
 {
-    TextMesh text;
-    private void Start()
+    protected TextMesh text;
+    protected virtual void Start()
     {
         text = GetComponentInChildren<TextMesh>();
     }
-    public void ProcessKeyCode(KeyCode key)
+    public virtual void ProcessKeyCode(KeyCode key)
     {
         string str = text.text;
         switch(key)
@@ -18,11 +18,8 @@ public class TextEntryBox : MonoBehaviour
             case KeyCode.Backspace:
                 if (str.Length > 0) str = str.Substring(0, str.Length - 1);
                 break;
-            case KeyCode.Space:
-                str += " ";
-                break;
             default:
-                str += key.ToString();
+                str += Manager.Inst.keycodeStringDict[key];
                 break;
         }
         text.text = str;

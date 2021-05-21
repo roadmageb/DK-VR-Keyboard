@@ -10,7 +10,7 @@ public class ControllerPointer : MonoBehaviour
     [SerializeField] private SteamVR_Action_Boolean grabButton;
 
     private TextEntryBox currentTextBox;
-    private SpherePolygon myPolygon;
+    public SpherePolygon myPolygon { get; private set; }
 
     [SerializeField] private Transform centerRay, forwardRay;
     [SerializeField] private TextMesh text;
@@ -18,7 +18,7 @@ public class ControllerPointer : MonoBehaviour
 
     private EntryState entryState;
 
-    public bool GetPointedKey(out KeyCode key)
+    public bool GetPointedKey(out KeyCode key, out Vector2 vec)
     {
         Vector3 direction = transform.forward, xzdirection;
         float theta, phi;
@@ -30,17 +30,14 @@ public class ControllerPointer : MonoBehaviour
         theta = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
         phi = Mathf.Atan2(direction.y, xzdirection.magnitude) * Mathf.Rad2Deg;
 
-        return myPolygon.GetPointedKey(new Vector2(theta, phi), out key);
-    }
+        vec = new Vector2(theta, phi);
 
-    private void SetDefaultKeyboard(Vector2 scale)
-    {
-        myPolygon = Manager.Inst.DefaultKeyBoard(hand, scale);
+        return myPolygon.GetPointedKey(new Vector2(theta, phi), out key);
     }
 
     private void SetDefaultKeyboard()
     {
-        SetDefaultKeyboard(Manager.Inst.defaultKeyboardScale);
+        myPolygon = Manager.Inst.GetKeyboard(hand);
     }
     private void Update()
     {
@@ -48,12 +45,21 @@ public class ControllerPointer : MonoBehaviour
         {
             centerRay.rotation = currentTextBox.transform.rotation;
 
-            if (GetPointedKey(out KeyCode key))
+            if (GetPointedKey(out KeyCode key, out Vector2 pos))
             {
                 if (grabButton.GetLastStateDown(input))
                 {
                     currentTextBox.ProcessKeyCode(key);
                     Manager.Inst.entryExitTrigger[(int)hand] = false;
+                    if(currentTextBox is LearningTextEntryBox)
+                    {
+                        KeyCode target = (currentTextBox as LearningTextEntryBox).currentTarget;
+                        if(myPolygon.polygons.ContainsKey(target))
+                        {
+                            myPolygon.StepLearning(target, pos);
+                            Manager.Inst.SaveKeyboard();
+                        }
+                    }
                 }
                 text.text = key.ToString();
                 text.transform.LookAt(cam, Vector3.up);
@@ -107,5 +113,9 @@ public class ControllerPointer : MonoBehaviour
     public void SetCurrentTextBox(TextEntryBox textBox)
     {
         currentTextBox = textBox;
+        if(textBox is LearningTextEntryBox)
+        {
+            myPolygon.InitLearning();
+        }
     }
 }

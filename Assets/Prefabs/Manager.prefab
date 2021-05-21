@@ -43,6 +43,117 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef86dbef0c6c5684591d1f76bf710476, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  keycodeTranslation:
+  - keycode: 96
+    str: '`'
+  - keycode: 49
+    str: 1
+  - keycode: 50
+    str: 2
+  - keycode: 51
+    str: 3
+  - keycode: 52
+    str: 4
+  - keycode: 53
+    str: 5
+  - keycode: 54
+    str: 6
+  - keycode: 55
+    str: 7
+  - keycode: 56
+    str: 8
+  - keycode: 57
+    str: 9
+  - keycode: 48
+    str: 0
+  - keycode: 45
+    str: '-'
+  - keycode: 61
+    str: =
+  - keycode: 8
+    str: 
+  - keycode: 9
+    str: \t
+  - keycode: 113
+    str: q
+  - keycode: 119
+    str: w
+  - keycode: 101
+    str: e
+  - keycode: 114
+    str: r
+  - keycode: 116
+    str: t
+  - keycode: 121
+    str: y
+  - keycode: 117
+    str: u
+  - keycode: 105
+    str: i
+  - keycode: 111
+    str: o
+  - keycode: 112
+    str: p
+  - keycode: 91
+    str: '['
+  - keycode: 93
+    str: ']'
+  - keycode: 92
+    str: \\
+  - keycode: 301
+    str: 
+  - keycode: 97
+    str: a
+  - keycode: 115
+    str: s
+  - keycode: 100
+    str: d
+  - keycode: 102
+    str: f
+  - keycode: 103
+    str: g
+  - keycode: 104
+    str: h
+  - keycode: 106
+    str: j
+  - keycode: 107
+    str: k
+  - keycode: 108
+    str: l
+  - keycode: 59
+    str: ;
+  - keycode: 39
+    str: q
+  - keycode: 13
+    str: \n
+  - keycode: 304
+    str: 
+  - keycode: 122
+    str: z
+  - keycode: 120
+    str: x
+  - keycode: 99
+    str: c
+  - keycode: 118
+    str: v
+  - keycode: 98
+    str: b
+  - keycode: 110
+    str: n
+  - keycode: 109
+    str: m
+  - keycode: 44
+    str: ','
+  - keycode: 46
+    str: .
+  - keycode: 47
+    str: /
+  - keycode: 303
+    str: 
+  - keycode: 32
+    str: ' '
+  entryExitTrigger: 
+  defaultSet: 0
   defaultKeyboardScale: {x: 2, y: 2}
   presets:
   - {fileID: 2800000, guid: c08848e35a2b3ef4e8c51b940669286d, type: 3}
