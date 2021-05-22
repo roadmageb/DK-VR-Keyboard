@@ -29,6 +29,7 @@ public class Manager : Singleton<Manager>
     public void InitContorllerPointer(Hand hand, ControllerPointer instance)
     {
         controllerPointers[(int)hand] = instance;
+        instance.ChangeState(entryState);
     }
 
     public void SetCurrentTextBox(TextEntryBox textBox)
@@ -148,7 +149,7 @@ public class Manager : Singleton<Manager>
         return new SpherePolygon(vertices, polygons, safeDistance);
     }
 
-    private void Start()
+    private void Awake()
     {
         KeycodeStringDictInit();
         entryExitTrigger = new bool[2];

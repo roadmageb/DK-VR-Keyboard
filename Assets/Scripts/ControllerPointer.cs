@@ -13,6 +13,7 @@ public class ControllerPointer : MonoBehaviour
     public SpherePolygon myPolygon { get; private set; }
 
     [SerializeField] private Transform centerRay, forwardRay;
+    [SerializeField] private LineRenderer pointRay;
     [SerializeField] private TextMesh text;
     [SerializeField] private Transform cam;
     [SerializeField] private GameObject keyLinePrefab;
@@ -121,7 +122,7 @@ public class ControllerPointer : MonoBehaviour
         }
         else if(entryState == EntryState.Select)
         {
-            if(hand == Hand.Left && grabButton.GetLastStateDown(input))
+            if(grabButton.GetLastStateDown(input))
             {
                 RaycastHit hit;
                 if (Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity))
@@ -141,6 +142,7 @@ public class ControllerPointer : MonoBehaviour
 
     private void SetKeyLineActive(bool active)
     {
+        if (keyLines == null) return;
         foreach (LineRenderer l in keyLines) l.enabled = active;
     }
 
@@ -153,12 +155,14 @@ public class ControllerPointer : MonoBehaviour
             forwardRay.gameObject.SetActive(false);
             Manager.Inst.entryExitTrigger[(int)hand] = false;
             SetKeyLineActive(false);
+            pointRay.enabled = true;
         }
         else if(entryState == EntryState.Input)
         {
             centerRay.gameObject.SetActive(true);
             forwardRay.gameObject.SetActive(true);
             SetKeyLineActive(true);
+            pointRay.enabled = false;
         }
     }
 
