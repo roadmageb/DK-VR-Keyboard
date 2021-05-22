@@ -15,6 +15,10 @@ public class ControllerPointer : MonoBehaviour
     [SerializeField] private Transform centerRay, forwardRay;
     [SerializeField] private TextMesh text;
     [SerializeField] private Transform cam;
+    [SerializeField] private GameObject keyLinePrefab;
+    [SerializeField] private float keyLineRadius;
+    [SerializeField] private Color keyLineColor;
+    private LineRenderer[] keyLines;
 
     private EntryState entryState;
 
@@ -38,18 +42,23 @@ public class ControllerPointer : MonoBehaviour
     private void SetDefaultKeyboard()
     {
         myPolygon = Manager.Inst.GetKeyboard(hand);
+        keyLines = new LineRenderer[myPolygon.polygons.Count];
+        for(int i = 0; i < keyLines.Length; i++)
+        {
+            keyLines[i] = Instantiate(keyLinePrefab, transform).GetComponent<LineRenderer>();
+        }
+        SetKeyLineActive(false);
     }
     private void Update()
     {
         if(entryState == EntryState.Input)
         {
             centerRay.rotation = currentTextBox.transform.rotation;
-
-            if (GetPointedKey(out KeyCode key, out Vector2 pos))
+            bool pointedkey = GetPointedKey(out KeyCode key, out Vector2 pos);
+            if (pointedkey)
             {
                 if (grabButton.GetLastStateDown(input))
                 {
-                    currentTextBox.ProcessKeyCode(key);
                     Manager.Inst.entryExitTrigger[(int)hand] = false;
                     if(currentTextBox is LearningTextEntryBox)
                     {
@@ -60,6 +69,7 @@ public class ControllerPointer : MonoBehaviour
                             Manager.Inst.SaveKeyboard();
                         }
                     }
+                    currentTextBox.ProcessKeyCode(key);
                 }
                 text.text = key.ToString();
                 text.transform.LookAt(cam, Vector3.up);
@@ -70,8 +80,43 @@ public class ControllerPointer : MonoBehaviour
                 {
                     if (Manager.Inst.entryExitTrigger[1 - (int)hand]) Manager.Inst.entryState = EntryState.Select;
                     else Manager.Inst.entryExitTrigger[(int)hand] = true;
+                    if (currentTextBox is LearningTextEntryBox)
+                    {
+                        KeyCode target = (currentTextBox as LearningTextEntryBox).currentTarget;
+                        if (myPolygon.polygons.ContainsKey(target))
+                        {
+                            myPolygon.StepLearning(target, pos);
+                            Manager.Inst.SaveKeyboard();
+                        }
+                        currentTextBox.ProcessKeyCode(key);
+                    }
                 }
                 text.text = "";
+            }
+
+            float camHandAngle = Vector3.Angle(cam.forward, transform.position - cam.position);
+            float alpha = 1f - 1f * Mathf.Min(1, camHandAngle / 45f);
+            int idx = 0;
+            
+            Gradient gradient = new Gradient();
+            gradient.SetKeys(
+                new GradientColorKey[] { new GradientColorKey(keyLineColor, 0f), new GradientColorKey(keyLineColor, 1f) },
+                new GradientAlphaKey[] { new GradientAlphaKey(alpha, 0f), new GradientAlphaKey(alpha, 1f)});
+            foreach(List<int> l in myPolygon.polygons.Values)
+            {
+                List<Vector3> positions = new List<Vector3>();
+                foreach(int i in l)
+                {
+                    Vector3 v = myPolygon.vertices[i] * Mathf.Deg2Rad;
+                    Vector3 temp = new Vector3(keyLineRadius * Mathf.Sin(v.x) * Mathf.Cos(v.y), keyLineRadius * Mathf.Sin(v.y), keyLineRadius * Mathf.Cos(v.x) * Mathf.Cos(v.y));
+                    temp = currentTextBox.transform.TransformDirection(temp) + transform.position;
+                    positions.Add(temp);
+                }
+                positions.Add(positions[0]);
+                keyLines[idx].positionCount = positions.Count;
+                keyLines[idx].SetPositions(positions.ToArray());
+                keyLines[idx].colorGradient = gradient;
+                idx++;
             }
         }
         else if(entryState == EntryState.Select)
@@ -94,6 +139,11 @@ public class ControllerPointer : MonoBehaviour
         SetDefaultKeyboard();
     }
 
+    private void SetKeyLineActive(bool active)
+    {
+        foreach (LineRenderer l in keyLines) l.enabled = active;
+    }
+
     public void ChangeState(EntryState newState)
     {
         entryState = newState;
@@ -102,11 +152,13 @@ public class ControllerPointer : MonoBehaviour
             centerRay.gameObject.SetActive(false);
             forwardRay.gameObject.SetActive(false);
             Manager.Inst.entryExitTrigger[(int)hand] = false;
+            SetKeyLineActive(false);
         }
         else if(entryState == EntryState.Input)
         {
             centerRay.gameObject.SetActive(true);
             forwardRay.gameObject.SetActive(true);
+            SetKeyLineActive(true);
         }
     }
 

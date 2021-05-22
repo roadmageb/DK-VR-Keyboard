@@ -141,7 +141,7 @@ public class Manager : Singleton<Manager>
         {
             for(int j = 0; j < vertices.Count; j++)
             {
-                safeDistance[i, j] = Vector2.Distance(vertices[i], vertices[j]) * 0.8f;
+                safeDistance[i, j] = Vector2.Distance(vertices[i], vertices[j]) * 0.9f;
             }
         }
 

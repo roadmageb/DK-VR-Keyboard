@@ -51,11 +51,13 @@ MonoBehaviour:
   grabButton:
     actionPath: /actions/default/in/GrabPinch
     needsReinit: 0
-  keyboardAxis: {fileID: 0}
   centerRay: {fileID: 7730522785323151066}
   forwardRay: {fileID: 1000266104506115118}
   text: {fileID: 4169902458773118046}
   cam: {fileID: 0}
+  keyLinePrefab: {fileID: 520066405403324077, guid: 55c4124ba35f88143844775fa6677ac4, type: 3}
+  keyLineRadius: 0.5
+  keyLineColor: {r: 1, g: 0.9647059, b: 0, a: 1}
 --- !u!1001 &73410384566834817
 PrefabInstance:
   m_ObjectHideFlags: 0
