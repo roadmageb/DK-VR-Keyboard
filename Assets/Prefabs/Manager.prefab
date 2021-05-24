@@ -99,7 +99,7 @@ MonoBehaviour:
   - keycode: 93
     str: ']'
   - keycode: 92
-    str: \\
+    str: \
   - keycode: 301
     str: 
   - keycode: 97
@@ -123,9 +123,11 @@ MonoBehaviour:
   - keycode: 59
     str: ;
   - keycode: 39
-    str: q
+    str: ''''
   - keycode: 13
-    str: \n
+    str: '
+
+'
   - keycode: 304
     str: 
   - keycode: 122

@@ -168,5 +168,6 @@ public class Manager : Singleton<Manager>
 public class KeyCodeStringPair
 {
     public KeyCode keycode;
+    [TextArea]
     public string str;
 }
