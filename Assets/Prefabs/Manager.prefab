@@ -1,5 +1,35 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &563095774
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 563095775}
+  m_Layer: 0
+  m_Name: WorldSpaceParent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &563095775
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 563095774}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1565467739406192730}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1565467739406192732
 GameObject:
   m_ObjectHideFlags: 0
@@ -27,7 +57,8 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 563095775}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -46,119 +77,174 @@ MonoBehaviour:
   keycodeTranslation:
   - keycode: 96
     str: '`'
+    onBoard: 
   - keycode: 49
     str: 1
+    onBoard: 
   - keycode: 50
     str: 2
+    onBoard: 
   - keycode: 51
     str: 3
+    onBoard: 
   - keycode: 52
     str: 4
+    onBoard: 
   - keycode: 53
     str: 5
+    onBoard: 
   - keycode: 54
     str: 6
+    onBoard: 
   - keycode: 55
     str: 7
+    onBoard: 
   - keycode: 56
     str: 8
+    onBoard: 
   - keycode: 57
     str: 9
+    onBoard: 
   - keycode: 48
     str: 0
+    onBoard: 
   - keycode: 45
     str: '-'
+    onBoard: 
   - keycode: 61
     str: =
+    onBoard: 
   - keycode: 8
     str: 
+    onBoard: Back
   - keycode: 9
     str: \t
+    onBoard: 
   - keycode: 113
     str: q
+    onBoard: q
   - keycode: 119
     str: w
+    onBoard: w
   - keycode: 101
     str: e
+    onBoard: e
   - keycode: 114
     str: r
+    onBoard: r
   - keycode: 116
     str: t
+    onBoard: t
   - keycode: 121
     str: y
+    onBoard: y
   - keycode: 117
     str: u
+    onBoard: u
   - keycode: 105
     str: i
+    onBoard: i
   - keycode: 111
     str: o
+    onBoard: o
   - keycode: 112
     str: p
+    onBoard: p
   - keycode: 91
     str: '['
+    onBoard: 
   - keycode: 93
     str: ']'
+    onBoard: 
   - keycode: 92
     str: \
+    onBoard: 
   - keycode: 301
     str: 
+    onBoard: 
   - keycode: 97
     str: a
+    onBoard: a
   - keycode: 115
     str: s
+    onBoard: s
   - keycode: 100
     str: d
+    onBoard: d
   - keycode: 102
     str: f
+    onBoard: f
   - keycode: 103
     str: g
+    onBoard: g
   - keycode: 104
     str: h
+    onBoard: h
   - keycode: 106
     str: j
+    onBoard: j
   - keycode: 107
     str: k
+    onBoard: k
   - keycode: 108
     str: l
+    onBoard: l
   - keycode: 59
     str: ;
+    onBoard: ;
   - keycode: 39
     str: ''''
+    onBoard: ''''
   - keycode: 13
     str: '
 
 '
+    onBoard: Enter
   - keycode: 304
     str: 
+    onBoard: 
   - keycode: 122
     str: z
+    onBoard: z
   - keycode: 120
     str: x
+    onBoard: x
   - keycode: 99
     str: c
+    onBoard: c
   - keycode: 118
     str: v
+    onBoard: v
   - keycode: 98
     str: b
+    onBoard: b
   - keycode: 110
     str: n
+    onBoard: n
   - keycode: 109
     str: m
+    onBoard: m
   - keycode: 44
     str: ','
+    onBoard: ','
   - keycode: 46
     str: .
+    onBoard: .
   - keycode: 47
     str: /
+    onBoard: 
   - keycode: 303
     str: 
+    onBoard: 
   - keycode: 32
     str: ' '
+    onBoard: Space
   entryExitTrigger: 
-  defaultSet: 0
+  defaultSet: 1
   defaultKeyboardScale: {x: 2, y: 2}
   presets:
   - {fileID: 2800000, guid: c08848e35a2b3ef4e8c51b940669286d, type: 3}
   - {fileID: 2800000, guid: 5cde9517d9b652e4b88c2f37ff154417, type: 3}
   leftKeyCodes: 710000007700000065000000720000007400000061000000730000006400000066000000670000007a0000007800000063000000760000006200000020000000
   rightKeyCodes: 080000007900000075000000690000006f00000070000000680000006a0000006b0000006c000000270000000d000000620000006e0000006d0000002c0000002e00000020000000
+  worldSpaceParent: {fileID: 563095775}

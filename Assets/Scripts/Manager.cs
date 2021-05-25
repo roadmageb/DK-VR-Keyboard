@@ -8,7 +8,7 @@ public class Manager : Singleton<Manager>
     private string jsonPath;
 
     public KeyCodeStringPair[] keycodeTranslation;
-    public Dictionary<KeyCode, string> keycodeStringDict;
+    public Dictionary<KeyCode, (string str, string onBoard)> keycodeStringDict;
     public ControllerPointer[] controllerPointers { get; private set; } = new ControllerPointer[2];
     public bool[] entryExitTrigger;
 
@@ -17,6 +17,8 @@ public class Manager : Singleton<Manager>
     private Vector2 currentKeyboardScale;
     [SerializeField] private Texture2D[] presets;
     [SerializeField] private KeyCode[] leftKeyCodes, rightKeyCodes;
+
+    public Transform worldSpaceParent;
 
     private EntryState _entryState;
     public EntryState entryState
@@ -214,8 +216,8 @@ public class Manager : Singleton<Manager>
     }
     private void KeycodeStringDictInit()
     {
-        keycodeStringDict = new Dictionary<KeyCode, string>();
-        foreach (KeyCodeStringPair p in keycodeTranslation) keycodeStringDict.Add(p.keycode, p.str);
+        keycodeStringDict = new Dictionary<KeyCode, (string str, string onBoard)>();
+        foreach (KeyCodeStringPair p in keycodeTranslation) keycodeStringDict.Add(p.keycode, (p.str, p.onBoard));
     }
 
     public List<KeyCode> GetAvailableKeyList()
@@ -240,4 +242,5 @@ public class KeyCodeStringPair
     public KeyCode keycode;
     [TextArea]
     public string str;
+    public string onBoard;
 }

@@ -19,7 +19,7 @@ public class TextEntryBox : MonoBehaviour
                 if (str.Length > 0) str = str.Substring(0, str.Length - 1);
                 break;
             default:
-                str += Manager.Inst.keycodeStringDict[key];
+                str += Manager.Inst.keycodeStringDict[key].str;
                 break;
         }
         text.text = str;
