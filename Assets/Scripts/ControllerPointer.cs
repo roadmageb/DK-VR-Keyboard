@@ -8,8 +8,10 @@ public class ControllerPointer : MonoBehaviour
     [SerializeField] private Hand hand;
     [SerializeField] private SteamVR_Input_Sources input;
     [SerializeField] private SteamVR_Action_Boolean grabButton;
+    [SerializeField] private SteamVR_Action_Vibration hapticAction;
 
     private TextEntryBox currentTextBox;
+    private Transform currentTextDir;
     public SpherePolygon myPolygon { get; private set; }
 
     [SerializeField] private Transform centerRay, forwardRay;
@@ -23,12 +25,15 @@ public class ControllerPointer : MonoBehaviour
 
     private EntryState entryState;
 
+    private bool previousKeyBool = false;
+    private KeyCode previousKeyCode = KeyCode.A;
+
     public bool GetPointedKey(out KeyCode key, out Vector2 vec)
     {
         Vector3 direction = transform.forward, xzdirection;
         float theta, phi;
 
-        direction = currentTextBox.transform.InverseTransformDirection(direction);
+        direction = currentTextDir.InverseTransformDirection(direction);
         xzdirection = direction;
         xzdirection.y = 0;
 
@@ -54,9 +59,9 @@ public class ControllerPointer : MonoBehaviour
     {
         if(entryState == EntryState.Input)
         {
-            centerRay.rotation = currentTextBox.transform.rotation;
-            bool pointedkey = GetPointedKey(out KeyCode key, out Vector2 pos);
-            if (pointedkey)
+            centerRay.rotation = currentTextDir.rotation;
+            bool pointed = GetPointedKey(out KeyCode key, out Vector2 pos);
+            if (pointed)
             {
                 if (grabButton.GetLastStateDown(input))
                 {
@@ -95,6 +100,13 @@ public class ControllerPointer : MonoBehaviour
                 text.text = "";
             }
 
+            if(previousKeyBool != pointed  || previousKeyCode != key)
+            {
+                hapticAction.Execute(0, 0.01f, 100, 100, input);
+            }
+            previousKeyBool = pointed;
+            previousKeyCode = key;
+
             float camHandAngle = Vector3.Angle(cam.forward, transform.position - cam.position);
             float alpha = 1f - 1f * Mathf.Min(1, camHandAngle / 45f);
             int idx = 0;
@@ -110,7 +122,7 @@ public class ControllerPointer : MonoBehaviour
                 {
                     Vector3 v = myPolygon.vertices[i] * Mathf.Deg2Rad;
                     Vector3 temp = new Vector3(keyLineRadius * Mathf.Sin(v.x) * Mathf.Cos(v.y), keyLineRadius * Mathf.Sin(v.y), keyLineRadius * Mathf.Cos(v.x) * Mathf.Cos(v.y));
-                    temp = currentTextBox.transform.TransformDirection(temp) + transform.position;
+                    temp = currentTextDir.TransformDirection(temp) + transform.position;
                     positions.Add(temp);
                 }
                 positions.Add(positions[0]);
@@ -168,8 +180,18 @@ public class ControllerPointer : MonoBehaviour
 
     public void SetCurrentTextBox(TextEntryBox textBox)
     {
+        Vector3 tempVec;
         currentTextBox = textBox;
-        if(textBox is LearningTextEntryBox)
+        if(currentTextDir == null)
+        {
+            currentTextDir = new GameObject().transform;
+        }
+        tempVec = cam.position;
+        tempVec.y = currentTextBox.transform.position.y;
+        currentTextDir.position = tempVec;
+        currentTextDir.LookAt(currentTextBox.transform.position, Vector3.up);
+
+        if (textBox is LearningTextEntryBox)
         {
             myPolygon.InitLearning();
         }

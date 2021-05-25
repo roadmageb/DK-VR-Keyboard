@@ -52,6 +52,9 @@ MonoBehaviour:
   grabButton:
     actionPath: /actions/default/in/GrabPinch
     needsReinit: 0
+  hapticAction:
+    actionPath: /actions/default/out/Haptic
+    needsReinit: 0
   centerRay: {fileID: 7730522785323151066}
   forwardRay: {fileID: 1000266104506115118}
   pointRay: {fileID: 6764508062656055294}
