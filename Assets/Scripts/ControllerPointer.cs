@@ -125,8 +125,8 @@ public class ControllerPointer : MonoBehaviour
                     temp = currentTextDir.TransformDirection(temp) + transform.position;
                     positions.Add(temp);
                 }
-                positions.Add(positions[0]);
                 keyLines[idx].positionCount = positions.Count;
+                keyLines[idx].numCornerVertices = positions.Count;
                 keyLines[idx].SetPositions(positions.ToArray());
                 keyLines[idx].colorGradient = gradient;
                 idx++;
