@@ -10,23 +10,37 @@ public class SpherePolygon
     /// </summary>
     public List<Vector2> vertices;
     /// <summary>
+    /// adjacent center points of each vertices
+    /// idx < 0 then borderPoints[-(idx+1)]
+    /// </summary>
+    public List<List<KeyCode>> adjCenters;
+    /// <summary>
     /// List of List(index of vertices) polygons
     /// two adjacent indices form an edge
     /// </summary>
     public Dictionary<KeyCode, List<int>> polygons;
+    /// <summary>
+    /// center points of each polygons
+    /// </summary>
+    public Dictionary<KeyCode, Vector2> centroids;
 
-    public float[,] safeDistance;
     public Dictionary<KeyCode, List<(Vector2 v, float w)>> learningLog;
 
-    private float maxStepDistance = 0.5f;
-    private float stepDistRate = 1;
-    private float maxPushDistance = 1;
+    private float maxStepDistance = 10;
+    private float learningRate = 0.3f;
 
-    public SpherePolygon (List<Vector2> _vertices, Dictionary<KeyCode, List<int>> _polygons, float[,] _safeDistance)
+    public SpherePolygon (List<Vector2> _vertices, List<List<KeyCode>> _adjCenters, Dictionary<KeyCode, List<int>> _polygons)
     {
-        vertices = new List<Vector2>(_vertices);
-        polygons = new Dictionary<KeyCode, List<int>>(_polygons);
-        safeDistance = _safeDistance.Clone() as float[,];
+        vertices = _vertices;
+        adjCenters = _adjCenters;
+        polygons = _polygons;
+    }
+    public SpherePolygon(List<Vector2> _vertices, List<List<KeyCode>> _adjCenters, Dictionary<KeyCode, List<int>> _polygons, Dictionary<KeyCode, Vector2> _centroids)
+    {
+        vertices = _vertices;
+        adjCenters = _adjCenters;
+        polygons = _polygons;
+        centroids = _centroids;
     }
 
     public bool GetPointedKey(Vector2 target, out KeyCode key)
@@ -65,92 +79,30 @@ public class SpherePolygon
         }
     }
 
-    public void InitLearning(float maxDist, float rate)
+    public void InitLearning(float maxDist, float lr)
     {
         maxStepDistance = maxDist;
-        stepDistRate = rate;
+        learningRate = lr;
         InitLearning();
     }
 
     public void StepLearning(KeyCode key, Vector2 pos)
     {
-        if (learningLog == null) InitLearning();
+        Vector2 moveVec = (pos - centroids[key]) * learningRate;
+        if (moveVec.magnitude > maxStepDistance * learningRate) moveVec = moveVec.normalized * maxStepDistance * learningRate;
 
-        Vector2[] diff = new Vector2[vertices.Count];
-        Func<float, float> distMoveFunction = x => 1 - x;
-
-        learningLog[key].Add((pos, 1f));
-
-        foreach(KeyCode k in learningLog.Keys)
+        foreach (int idx in polygons[key])
         {
-            foreach(var log in learningLog[k])
+            float weightSum = 0, weightTarget = 0;
+            foreach(KeyCode ctr in adjCenters[idx])
             {
-                KeyCode outKey;
-                bool clicked = GetPointedKey(log.v, out outKey);
-
-                if (!clicked || outKey != k)
-                {
-                    float[] distArr = new float[polygons[k].Count];
-                    float minDist = -1, maxDist = -1;
-                    for (int i = 0; i < polygons[k].Count; i++)
-                    {
-                        float d = Vector2.Distance(vertices[polygons[k][i]], log.v);
-                        if (minDist < 0 || d < minDist) minDist = d;
-                        if (maxDist < 0 || d > maxDist) maxDist = d;
-                        distArr[i] = d;
-                    }
-                    if (minDist < maxDist)
-                    {
-                        for (int i = 0; i < polygons[k].Count; i++)
-                        {
-                            distArr[i] = (distArr[i] - minDist) / (maxDist - minDist);
-                            distArr[i] = distMoveFunction(distArr[i]);
-
-                            Vector2 temp = (log.v - vertices[polygons[k][i]]) * stepDistRate;
-                            diff[polygons[k][i]] += temp * distArr[i] * log.w;
-                        }
-                    }
-                }
-                else if (outKey == k)
-                {
-                    for (int i = 0; i < polygons[k].Count; i++)
-                    {
-                        float d = Vector2.Distance(vertices[polygons[k][i]], log.v);
-                        if(d < maxPushDistance)
-                        {
-                            Vector2 temp = (vertices[polygons[k][i]] - log.v).normalized * (maxPushDistance - d) * 0.8f;
-                            diff[polygons[k][i]] += temp * log.w;
-                        }
-                    }
-                }
+                float dist = 1f / Mathf.Max(Vector2.Distance(centroids[ctr], vertices[idx]), 0.0001f);
+                weightSum += dist;
+                if (ctr == key) weightTarget = dist;
             }
-            for (int i = 0; i < learningLog[k].Count; i++)
-            {
-                learningLog[k][i] = (learningLog[k][i].v, learningLog[k][i].w * 0.9f);
-            }
-        }
-        for(int i = 0; i < vertices.Count; i++)
-        {
-            if (diff[i].magnitude > maxStepDistance) diff[i] *= maxStepDistance / diff[i].magnitude;
-            vertices[i] += diff[i];
+            vertices[idx] += moveVec * (weightTarget / weightSum);
         }
 
-        diff = new Vector2[vertices.Count];
-
-        for(int i = 0; i < vertices.Count; i++)
-        {
-            for(int j = 0; j < vertices.Count; j++)
-            {
-                if (Vector2.Distance(vertices[i], vertices[j]) < safeDistance[i,j])
-                {
-                    diff[i] += (vertices[i] - vertices[j]).normalized * (safeDistance[i, j] - Vector2.Distance(vertices[i], vertices[j])) / 2;
-                }
-            }
-        }
-
-        for (int i = 0; i < vertices.Count; i++)
-        {
-            vertices[i] += diff[i];
-        }
+        centroids[key] += moveVec;
     }
 }

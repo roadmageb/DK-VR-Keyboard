@@ -14,10 +14,7 @@ public class LearningTextEntryBox : TextEntryBox
     }
     protected override void Start()
     {
-        foreach(KeyCodeStringPair p in Manager.Inst.keycodeTranslation)
-        {
-            keyCodeList.Add(p.keycode);
-        }
+        keyCodeList = Manager.Inst.GetAvailableKeyList();
         base.Start();
         NextTarget();
     }
