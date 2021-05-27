@@ -24,7 +24,16 @@ public class Manager : Singleton<Manager>
     public EntryState entryState
     {
         get { return _entryState; }
-        set { foreach (ControllerPointer p in controllerPointers) if(p != null) p.ChangeState(value); _entryState = value; }
+        set 
+        { 
+            ChangeState(value); 
+            foreach (ControllerPointer p in controllerPointers) if(p != null) p.ChangeState(value); 
+            _entryState = value; 
+        }
+    }
+    private void ChangeState(EntryState s)
+    {
+
     }
 
     public void InitContorllerPointer(Hand hand, ControllerPointer instance)
@@ -39,6 +48,7 @@ public class Manager : Singleton<Manager>
         {
             p.SetCurrentTextBox(textBox);
         }
+        textBox.StartEdit();
     }
 
     public SpherePolygon GetKeyboard(Hand hand)

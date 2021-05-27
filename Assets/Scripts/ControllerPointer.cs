@@ -192,6 +192,7 @@ public class ControllerPointer : MonoBehaviour
             forwardRay.gameObject.SetActive(false);
             Manager.Inst.entryExitTrigger[(int)hand] = false;
             SetVisualKeyboardActive(false);
+            text.text = "";
             pointRay.enabled = true;
         }
         else if(entryState == EntryState.Input)

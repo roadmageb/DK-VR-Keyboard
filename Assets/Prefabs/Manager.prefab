@@ -241,7 +241,7 @@ MonoBehaviour:
     onBoard: Space
   entryExitTrigger: 
   defaultSet: 1
-  defaultKeyboardScale: {x: 2, y: 2}
+  defaultKeyboardScale: {x: 2.2, y: 2.2}
   presets:
   - {fileID: 2800000, guid: c08848e35a2b3ef4e8c51b940669286d, type: 3}
   - {fileID: 2800000, guid: 5cde9517d9b652e4b88c2f37ff154417, type: 3}

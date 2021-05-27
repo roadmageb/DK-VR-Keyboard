@@ -24,4 +24,12 @@ public class TextEntryBox : MonoBehaviour
         }
         text.text = str;
     }
+    public virtual void StartEdit()
+    {
+
+    }
+    public virtual void EndEdit()
+    {
+
+    }
 }
