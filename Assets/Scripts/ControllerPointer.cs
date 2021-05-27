@@ -126,6 +126,7 @@ public class ControllerPointer : MonoBehaviour
             keyLines[idx].numCornerVertices = positions.Count;
             keyLines[idx].SetPositions(positions.ToArray());
             keyLines[idx].colorGradient = gradient;
+            keyLines[idx].startWidth = keyLineRadius * 0.02f;
 
             Color textColor = keyTextColor;
             textColor.a = alpha;
