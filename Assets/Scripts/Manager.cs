@@ -6,6 +6,7 @@ using UnityEngine;
 public class Manager : Singleton<Manager>
 {
     private string jsonPath;
+    public string saveDataName;
 
     public KeyCodeStringPair[] keycodeTranslation;
     public Dictionary<KeyCode, (string str, string onBoard)> keycodeStringDict;
@@ -222,7 +223,7 @@ public class Manager : Singleton<Manager>
         KeycodeStringDictInit();
         entryExitTrigger = new bool[2];
         entryState = EntryState.Select;
-        jsonPath = Application.persistentDataPath + "/savedata/data.json";
+        jsonPath = Application.persistentDataPath + "/savedata/" + saveDataName + ".json";
     }
     private void KeycodeStringDictInit()
     {
