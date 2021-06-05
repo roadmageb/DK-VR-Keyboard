@@ -84,7 +84,7 @@ public class TestTextBox : TextEntryBox
                         SaveTestResult();
                         currentSentence = "==Test Done!!==";
                         entryText = "";
-                        Manager.Inst.entryState = EntryState.Select;
+                        Manager.Inst.entryState = EntryState.SELECT;
                     }
                 }
                 else
