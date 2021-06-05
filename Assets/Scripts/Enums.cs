@@ -1,2 +1,4 @@
-public enum Hand {Left, Right}
-public enum EntryState {Select, Input}
+public enum Hand { LEFT, RIGHT}
+public enum EntryState { SELECT, INPUT}
+public enum KeyboardMode { BASELINE, DK}
+public enum KeyPushState { IDLE, OVER, DOWN, UP}

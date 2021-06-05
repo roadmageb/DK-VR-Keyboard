@@ -33,6 +33,9 @@ public class ControllerPointer : MonoBehaviour
     private bool previousKeyBool = false;
     private KeyCode previousKeyCode = KeyCode.A;
 
+    private KeyPushState pushState;
+    private KeyCode pushKey;
+
     public bool GetPointedKey(out KeyCode key, out Vector2 vec)
     {
         Vector3 direction = transform.forward, xzdirection;
@@ -49,7 +52,7 @@ public class ControllerPointer : MonoBehaviour
 
         return myPolygon.GetPointedKey(new Vector2(theta, phi), out key);
     }
-    private void KeyboardInteraction()
+    private void DKKeyboardInteraction()
     {
         centerRay.rotation = currentTextDir.rotation;
         bool pointed = GetPointedKey(out KeyCode key, out Vector2 pos);
@@ -76,7 +79,7 @@ public class ControllerPointer : MonoBehaviour
         {
             if (grabButton.GetLastStateDown(input))
             {
-                if (Manager.Inst.entryExitTrigger[1 - (int)hand]) Manager.Inst.entryState = EntryState.Select;
+                if (Manager.Inst.entryExitTrigger[1 - (int)hand]) Manager.Inst.entryState = EntryState.SELECT;
                 else Manager.Inst.entryExitTrigger[(int)hand] = true;
                 if (currentTextBox is LearningTextEntryBox)
                 {
@@ -138,24 +141,64 @@ public class ControllerPointer : MonoBehaviour
             idx++;
         }
     }
+    private void BaselineKeyboardInteraction()
+    {
+        pushState = KeyPushState.IDLE;
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity, LayerMask.GetMask("BaselineKey")))
+        {
+            BaselineKey keyBox = hit.transform.GetComponentInParent<BaselineKey>();
+            if (keyBox != null) 
+            {
+                pushKey = keyBox.key;
+                
+                pushState = KeyPushState.OVER;
+            }
+        }
+        if(pushState != KeyPushState.IDLE)
+        {
+            if(grabButton.GetLastStateUp(input))
+            {
+                pushState = KeyPushState.UP;
+                currentTextBox.ProcessKeyCode(pushKey);
+            }
+            else if(grabButton.GetLastState(input))
+            {
+                pushState = KeyPushState.DOWN;
+            }
+        }
+    }
+    public KeyPushState GetKeyPushState(KeyCode key)
+    {
+        return key == pushKey ? pushState : KeyPushState.IDLE;
+    }
     private void Update()
     {
-        if(entryState == EntryState.Input)
+        switch(entryState)
         {
-            KeyboardInteraction();
-        }
-        else if(entryState == EntryState.Select)
-        {
-            if(grabButton.GetLastStateDown(input))
-            {
-                RaycastHit hit;
-                if (Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity))
+            case EntryState.INPUT:
+                switch(Manager.Inst.keyboardMode)
                 {
-                    TextEntryBox t = hit.transform.GetComponent<TextEntryBox>();
-                    if (t != null) Manager.Inst.SetCurrentTextBox(t);
-                    Manager.Inst.entryState = EntryState.Input;
+                    case KeyboardMode.BASELINE:
+                        BaselineKeyboardInteraction();
+                        break;
+                    case KeyboardMode.DK:
+                        DKKeyboardInteraction();
+                        break;
                 }
-            }
+                break;
+            case EntryState.SELECT:
+                if (grabButton.GetLastStateDown(input))
+                {
+                    RaycastHit hit;
+                    if (Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity))
+                    {
+                        TextEntryBox t = hit.transform.GetComponent<TextEntryBox>();
+                        if (t != null) Manager.Inst.SetCurrentTextBox(t);
+                        Manager.Inst.entryState = EntryState.INPUT;
+                    }
+                }
+                break;
         }
     }
     private void Start()
@@ -187,7 +230,7 @@ public class ControllerPointer : MonoBehaviour
     public void ChangeState(EntryState newState)
     {
         entryState = newState;
-        if(entryState == EntryState.Select)
+        if(entryState == EntryState.SELECT)
         {
             centerRay.gameObject.SetActive(false);
             forwardRay.gameObject.SetActive(false);
@@ -196,12 +239,15 @@ public class ControllerPointer : MonoBehaviour
             text.text = "";
             pointRay.enabled = true;
         }
-        else if(entryState == EntryState.Input)
+        else if(entryState == EntryState.INPUT)
         {
-            centerRay.gameObject.SetActive(true);
-            forwardRay.gameObject.SetActive(true);
-            SetVisualKeyboardActive(true);
-            pointRay.enabled = false;
+            if (Manager.Inst.keyboardMode == KeyboardMode.DK)
+            {
+                centerRay.gameObject.SetActive(true);
+                forwardRay.gameObject.SetActive(true);
+                SetVisualKeyboardActive(true);
+                pointRay.enabled = false;
+            }
         }
     }
 
@@ -209,18 +255,21 @@ public class ControllerPointer : MonoBehaviour
     {
         Vector3 tempVec;
         currentTextBox = textBox;
-        if(currentTextDir == null)
+        if (Manager.Inst.keyboardMode == KeyboardMode.DK)
         {
-            currentTextDir = new GameObject().transform;
-        }
-        tempVec = cam.position;
-        tempVec.y = currentTextBox.transform.position.y;
-        currentTextDir.position = tempVec;
-        currentTextDir.LookAt(currentTextBox.transform.position, Vector3.up);
+            if (currentTextDir == null)
+            {
+                currentTextDir = new GameObject().transform;
+            }
+            tempVec = cam.position;
+            tempVec.y = currentTextBox.transform.position.y;
+            currentTextDir.position = tempVec;
+            currentTextDir.LookAt(currentTextBox.transform.position, Vector3.up);
 
-        if (textBox is LearningTextEntryBox)
-        {
-            myPolygon.InitLearning();
+            if (textBox is LearningTextEntryBox)
+            {
+                myPolygon.InitLearning();
+            }
         }
     }
 }

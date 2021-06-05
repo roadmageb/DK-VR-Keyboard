@@ -5,44 +5,48 @@ using UnityEngine;
 
 public class Manager : Singleton<Manager>
 {
+    [Header("General Settings")]
+    public KeyboardMode keyboardMode;
     private string jsonPath;
     public string saveDataName;
+    public Transform worldSpaceParent;
+    public ControllerPointer[] controllerPointers { get; private set; } = new ControllerPointer[2];
+    private EntryState _entryState;
+    public EntryState entryState
+    {
+        get { return _entryState; }
+        set
+        {
+            ChangeState(value);
+            foreach (ControllerPointer p in controllerPointers) if (p != null) p.ChangeState(value);
+            _entryState = value;
+        }
+    }
 
+    [Header("Translations")]
     public KeyCodeStringPair[] keycodeTranslation;
     public Dictionary<KeyCode, (string str, string onBoard)> keycodeStringDict;
-    public ControllerPointer[] controllerPointers { get; private set; } = new ControllerPointer[2];
-    public bool[] entryExitTrigger;
 
+    [Header("DK Keyboard Settings")]
     [SerializeField] private bool defaultSet;
     public Vector2 defaultKeyboardScale;
     private Vector2 currentKeyboardScale;
     [SerializeField] private Texture2D[] presets;
     [SerializeField] private KeyCode[] leftKeyCodes, rightKeyCodes;
+    [HideInInspector] public bool[] entryExitTrigger;
 
-    public Transform worldSpaceParent;
-
-    private EntryState _entryState;
-    public EntryState entryState
-    {
-        get { return _entryState; }
-        set 
-        { 
-            ChangeState(value); 
-            foreach (ControllerPointer p in controllerPointers) if(p != null) p.ChangeState(value); 
-            _entryState = value; 
-        }
-    }
+    [Header("Basline Keyboard Settings")]
+    private float baselineKeyboardSize;
+    //General functions
     private void ChangeState(EntryState s)
     {
-
+        
     }
-
     public void InitContorllerPointer(Hand hand, ControllerPointer instance)
     {
         controllerPointers[(int)hand] = instance;
         instance.ChangeState(entryState);
     }
-
     public void SetCurrentTextBox(TextEntryBox textBox)
     {
         foreach(ControllerPointer p in controllerPointers)
@@ -51,7 +55,35 @@ public class Manager : Singleton<Manager>
         }
         textBox.StartEdit();
     }
+    private void KeycodeStringDictInit()
+    {
+        keycodeStringDict = new Dictionary<KeyCode, (string str, string onBoard)>();
+        foreach (KeyCodeStringPair p in keycodeTranslation) keycodeStringDict.Add(p.keycode, (p.str, p.onBoard));
+    }
+    private void Awake()
+    {
+        KeycodeStringDictInit();
+        entryExitTrigger = new bool[2];
+        entryState = EntryState.SELECT;
+        jsonPath = Application.persistentDataPath + "/savedata/" + saveDataName + ".json";
+        if (keyboardMode != KeyboardMode.BASELINE) GameObject.Find("BaseLineKeyboard").SetActive(false);
+    }
 
+
+    //DK Keyboard functions
+    public List<KeyCode> GetAvailableKeyList()
+    {
+        List<KeyCode> ret = new List<KeyCode>();
+        foreach(KeyCode key in leftKeyCodes)
+        {
+            if (!ret.Contains(key)) ret.Add(key);
+        }
+        foreach (KeyCode key in rightKeyCodes)
+        {
+            if (!ret.Contains(key)) ret.Add(key);
+        }
+        return ret;
+    }
     public SpherePolygon GetKeyboard(Hand hand)
     {
         if (!defaultSet)
@@ -64,14 +96,14 @@ public class Manager : Singleton<Manager>
                 currentKeyboardScale = keyJson.originScale;
                 Dictionary<KeyCode, Vector2> centroids = new Dictionary<KeyCode, Vector2>();
 
-                Vector2[] targetVArr = hand == Hand.Left ? keyJson.leftCentroids : keyJson.rightCentroids;
-                KeyCode[] targetKArr = hand == Hand.Left ? leftKeyCodes : rightKeyCodes;
+                Vector2[] targetVArr = hand == Hand.LEFT ? keyJson.leftCentroids : keyJson.rightCentroids;
+                KeyCode[] targetKArr = hand == Hand.LEFT ? leftKeyCodes : rightKeyCodes;
 
                 int i = 0;
                 foreach(KeyCode k in targetKArr) centroids[k] = targetVArr[i++];
 
                 return new SpherePolygon(new List<Vector2>(
-                    hand == Hand.Left ? keyJson.leftVertices : keyJson.rightVertices),
+                    hand == Hand.LEFT ? keyJson.leftVertices : keyJson.rightVertices),
                     safeDefault.adjCenters,
                     safeDefault.polygons,
                     centroids);
@@ -112,8 +144,7 @@ public class Manager : Singleton<Manager>
         string dir = jsonPath.Substring(0, jsonPath.LastIndexOf('/') + 1);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         File.WriteAllText(jsonPath, JsonUtility.ToJson(keyJson));
-    }
-
+    } 
     /// <summary>
     /// 
     /// </summary>
@@ -121,7 +152,7 @@ public class Manager : Singleton<Manager>
     /// <param name="scale"></param>
     public SpherePolygon DefaultKeyboard(Hand hand, Vector2 scale)
     {
-        int handidx = hand==Hand.Left ? 0 : 1;
+        int handidx = hand==Hand.LEFT ? 0 : 1;
         Vector2 origin = new Vector2();
 
         List<Vector2> vertices = new List<Vector2>();
@@ -162,7 +193,7 @@ public class Manager : Singleton<Manager>
         foreach (int loop in loopVertices)
         {
             Vector2 pos = new Vector2(vertices[loop].x, vertices[loop].y);
-            KeyCode loopKey = hand == Hand.Left ? leftKeyCodes[codeidx] : rightKeyCodes[codeidx];
+            KeyCode loopKey = hand == Hand.LEFT ? leftKeyCodes[codeidx] : rightKeyCodes[codeidx];
             int dir = 0;
             pos += dirVec[dir];
 
@@ -218,33 +249,17 @@ public class Manager : Singleton<Manager>
         return ret;
     }
 
-    private void Awake()
-    {
-        KeycodeStringDictInit();
-        entryExitTrigger = new bool[2];
-        entryState = EntryState.Select;
-        jsonPath = Application.persistentDataPath + "/savedata/" + saveDataName + ".json";
-    }
-    private void KeycodeStringDictInit()
-    {
-        keycodeStringDict = new Dictionary<KeyCode, (string str, string onBoard)>();
-        foreach (KeyCodeStringPair p in keycodeTranslation) keycodeStringDict.Add(p.keycode, (p.str, p.onBoard));
-    }
 
-    public List<KeyCode> GetAvailableKeyList()
+    //Baseline keyboard functions
+    public KeyPushState GetKeyPushState(KeyCode key)
     {
-        List<KeyCode> ret = new List<KeyCode>();
-        foreach(KeyCode key in leftKeyCodes)
+        KeyPushState ret = KeyPushState.IDLE;
+        foreach(ControllerPointer p in controllerPointers)
         {
-            if (!ret.Contains(key)) ret.Add(key);
-        }
-        foreach (KeyCode key in rightKeyCodes)
-        {
-            if (!ret.Contains(key)) ret.Add(key);
+            ret = (KeyPushState)Mathf.Max((int)ret, (int)p.GetKeyPushState(key));
         }
         return ret;
     }
-
 }
 
 [Serializable]
