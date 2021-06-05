@@ -120,7 +120,7 @@ public class TestTextBox : TextEntryBox
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
         int n = 0;
-        Func<int, string> filePath = (x) => dir + TestManager.Inst.testName + "/" + "_" + x.ToString("000") + ".txt";
+        Func<int, string> filePath = (x) => dir + TestManager.Inst.testName + "/" + "_" + x.ToString("000") + ".json";
         for (; File.Exists(filePath(n)); n++) ;
 
         File.WriteAllText(filePath(n), JsonConvert.SerializeObject(result));

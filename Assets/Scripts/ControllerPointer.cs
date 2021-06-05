@@ -8,7 +8,9 @@ public class ControllerPointer : MonoBehaviour
 {
     [SerializeField] private Hand hand;
     [SerializeField] private SteamVR_Input_Sources input;
-    [SerializeField] private SteamVR_Action_Boolean grabButton;
+    [SerializeField] private SteamVR_Action_Boolean typeButton;
+    [SerializeField] private SteamVR_Action_Boolean[] backspaceButton;
+    [SerializeField] private SteamVR_Action_Boolean[] spaceButton;
     [SerializeField] private SteamVR_Action_Vibration hapticAction;
     [SerializeField] private Transform forwardTransform;
 
@@ -59,7 +61,7 @@ public class ControllerPointer : MonoBehaviour
         bool pointed = GetPointedKey(out KeyCode key, out Vector2 pos);
         if (pointed)
         {
-            if (grabButton.GetLastStateDown(input))
+            if (typeButton.GetLastStateDown(input))
             {
                 Manager.Inst.entryExitTrigger[(int)hand] = false;
                 if (currentTextBox is LearningTextEntryBox)
@@ -78,7 +80,7 @@ public class ControllerPointer : MonoBehaviour
         }
         else
         {
-            if (grabButton.GetLastStateDown(input))
+            if (typeButton.GetLastStateDown(input))
             {
                 if (Manager.Inst.entryExitTrigger[1 - (int)hand]) Manager.Inst.entryState = EntryState.SELECT;
                 else Manager.Inst.entryExitTrigger[(int)hand] = true;
@@ -158,17 +160,36 @@ public class ControllerPointer : MonoBehaviour
         }
         if(pushState != KeyPushState.IDLE)
         {
-            if(grabButton.GetLastStateUp(input))
+            if(typeButton.GetLastStateUp(input))
             {
                 pushState = KeyPushState.UP;
             }
-            else if(grabButton.GetLastState(input))
+            else if(typeButton.GetLastState(input))
             {
                 pushState = KeyPushState.DOWN;
             }
-            if (grabButton.GetLastStateDown(input))
+            if (typeButton.GetLastStateDown(input))
             {
                 currentTextBox.ProcessKeyCode(pushKey);
+            }
+        }
+    }
+    private void KeyboardInteraction()
+    {
+        foreach(SteamVR_Action_Boolean action in backspaceButton)
+        {
+            if(action.GetLastStateDown(input))
+            {
+                currentTextBox.ProcessKeyCode(KeyCode.Backspace);
+                break;
+            }
+        }
+        foreach (SteamVR_Action_Boolean action in spaceButton)
+        {
+            if (action.GetLastStateDown(input))
+            {
+                currentTextBox.ProcessKeyCode(KeyCode.Space);
+                break;
             }
         }
     }
@@ -190,9 +211,10 @@ public class ControllerPointer : MonoBehaviour
                         DKKeyboardInteraction();
                         break;
                 }
+                KeyboardInteraction();
                 break;
             case EntryState.SELECT:
-                if (grabButton.GetLastStateDown(input))
+                if (typeButton.GetLastStateDown(input))
                 {
                     RaycastHit hit;
                     if (Physics.Raycast(forwardTransform.transform.position, forwardTransform.transform.forward, out hit, Mathf.Infinity))
