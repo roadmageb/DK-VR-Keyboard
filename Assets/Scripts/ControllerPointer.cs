@@ -10,6 +10,7 @@ public class ControllerPointer : MonoBehaviour
     [SerializeField] private SteamVR_Input_Sources input;
     [SerializeField] private SteamVR_Action_Boolean grabButton;
     [SerializeField] private SteamVR_Action_Vibration hapticAction;
+    [SerializeField] private Transform forwardTransform;
 
     private TextEntryBox currentTextBox;
     private Transform currentTextDir;
@@ -38,7 +39,7 @@ public class ControllerPointer : MonoBehaviour
 
     public bool GetPointedKey(out KeyCode key, out Vector2 vec)
     {
-        Vector3 direction = transform.forward, xzdirection;
+        Vector3 direction = forwardTransform.transform.forward, xzdirection;
         float theta, phi;
 
         direction = currentTextDir.InverseTransformDirection(direction);
@@ -145,7 +146,7 @@ public class ControllerPointer : MonoBehaviour
     {
         pushState = KeyPushState.IDLE;
         RaycastHit hit;
-        if (Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity, LayerMask.GetMask("BaselineKey")))
+        if (Physics.Raycast(forwardTransform.transform.position, forwardTransform.transform.forward, out hit, Mathf.Infinity, LayerMask.GetMask("BaselineKey")))
         {
             BaselineKey keyBox = hit.transform.GetComponentInParent<BaselineKey>();
             if (keyBox != null) 
@@ -160,11 +161,14 @@ public class ControllerPointer : MonoBehaviour
             if(grabButton.GetLastStateUp(input))
             {
                 pushState = KeyPushState.UP;
-                currentTextBox.ProcessKeyCode(pushKey);
             }
             else if(grabButton.GetLastState(input))
             {
                 pushState = KeyPushState.DOWN;
+            }
+            if (grabButton.GetLastStateDown(input))
+            {
+                currentTextBox.ProcessKeyCode(pushKey);
             }
         }
     }
@@ -191,7 +195,7 @@ public class ControllerPointer : MonoBehaviour
                 if (grabButton.GetLastStateDown(input))
                 {
                     RaycastHit hit;
-                    if (Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity))
+                    if (Physics.Raycast(forwardTransform.transform.position, forwardTransform.transform.forward, out hit, Mathf.Infinity))
                     {
                         TextEntryBox t = hit.transform.GetComponent<TextEntryBox>();
                         if (t != null) Manager.Inst.SetCurrentTextBox(t);
@@ -205,6 +209,10 @@ public class ControllerPointer : MonoBehaviour
     {
         Manager.Inst.InitContorllerPointer(hand, this);
         SetDefaultKeyboard();
+        if(new List<string> {"rift"}.Contains(SteamVR.instance.hmd_Type))
+        {
+            forwardTransform.eulerAngles = new Vector3(45, 0, 0);
+        }
     }
 
     private void SetVisualKeyboardActive(bool active)

@@ -66,7 +66,11 @@ public class Manager : Singleton<Manager>
         entryExitTrigger = new bool[2];
         entryState = EntryState.SELECT;
         jsonPath = Application.persistentDataPath + "/savedata/" + saveDataName + ".json";
-        if (keyboardMode != KeyboardMode.BASELINE) GameObject.Find("BaseLineKeyboard").SetActive(false);
+        if (keyboardMode != KeyboardMode.BASELINE)
+        {
+            GameObject g = GameObject.Find("BaseLineKeyboard");
+            if(g!=null)g.SetActive(false);
+        }
     }
 
 
