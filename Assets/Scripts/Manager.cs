@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using Newtonsoft.Json;
 
 public class Manager : Singleton<Manager>
 {
@@ -31,7 +32,9 @@ public class Manager : Singleton<Manager>
     [SerializeField] private bool defaultSet;
     public Vector2 defaultKeyboardScale;
     private Vector2 currentKeyboardScale;
-    [SerializeField] private Texture2D[] presets;
+    [SerializeField] private DKLayoutPreset[] layoutList;
+    [SerializeField] private int layoutIndex;
+    private Texture2D[] presets;
     [SerializeField] private KeyCode[] leftKeyCodes, rightKeyCodes;
     [HideInInspector] public bool[] entryExitTrigger;
 
@@ -62,7 +65,10 @@ public class Manager : Singleton<Manager>
     }
     private void Awake()
     {
+        //File.WriteAllText(Application.persistentDataPath + "/savedata/left.txt", JsonConvert.SerializeObject(leftKeyCodes));
+        //File.WriteAllText(Application.persistentDataPath + "/savedata/right.txt", JsonConvert.SerializeObject(rightKeyCodes));
         KeycodeStringDictInit();
+        ImportLayout();
         entryExitTrigger = new bool[2];
         entryState = EntryState.SELECT;
         jsonPath = Application.persistentDataPath + "/savedata/" + saveDataName + ".json";
@@ -73,6 +79,16 @@ public class Manager : Singleton<Manager>
         }
     }
 
+    private void ImportLayout()
+    {
+        if (layoutIndex < layoutList.Length)
+        {
+            DKLayoutPreset currentLayout = layoutList[layoutIndex];
+            presets = currentLayout.image;
+            leftKeyCodes = JsonConvert.DeserializeObject<KeyCode[]>(currentLayout.binding[0].text);
+            rightKeyCodes = JsonConvert.DeserializeObject<KeyCode[]>(currentLayout.binding[1].text);
+        }
+    }
 
     //DK Keyboard functions
     public List<KeyCode> GetAvailableKeyList()
@@ -273,4 +289,12 @@ public class KeyCodeStringPair
     [TextArea]
     public string str;
     public string onBoard;
+}
+
+[Serializable]
+public class DKLayoutPreset
+{
+    public string name;
+    public Texture2D[] image;
+    public TextAsset[] binding;
 }

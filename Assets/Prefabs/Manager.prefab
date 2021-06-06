@@ -74,6 +74,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef86dbef0c6c5684591d1f76bf710476, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  keyboardMode: 0
+  saveDataName: ryu
+  worldSpaceParent: {fileID: 563095775}
   keycodeTranslation:
   - keycode: 96
     str: '`'
@@ -239,12 +242,17 @@ MonoBehaviour:
   - keycode: 32
     str: ' '
     onBoard: Space
-  entryExitTrigger: 
   defaultSet: 1
-  defaultKeyboardScale: {x: 2.2, y: 2.2}
-  presets:
-  - {fileID: 2800000, guid: c08848e35a2b3ef4e8c51b940669286d, type: 3}
-  - {fileID: 2800000, guid: 5cde9517d9b652e4b88c2f37ff154417, type: 3}
+  defaultKeyboardScale: {x: 2, y: 2}
+  layoutList:
+  - name: basic
+    image:
+    - {fileID: 2800000, guid: c08848e35a2b3ef4e8c51b940669286d, type: 3}
+    - {fileID: 2800000, guid: 5cde9517d9b652e4b88c2f37ff154417, type: 3}
+    binding:
+    - {fileID: 4900000, guid: 47cd8469287ecd44a80ffb819a8ad068, type: 3}
+    - {fileID: 4900000, guid: 1aa5a8c382025ab46abb7ba646689df7, type: 3}
+  layoutIndex: 0
   leftKeyCodes: 710000007700000065000000720000007400000061000000730000006400000066000000670000007a0000007800000063000000760000006200000020000000
   rightKeyCodes: 080000007900000075000000690000006f00000070000000680000006a0000006b0000006c000000270000000d000000620000006e0000006d0000002c0000002e00000020000000
-  worldSpaceParent: {fileID: 563095775}
+  entryExitTrigger: 

@@ -47,9 +47,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hand: 0
   input: 1
-  grabButton:
+  typeButton:
     actionPath: /actions/default/in/GrabPinch
     needsReinit: 0
+  backspaceButton: []
+  spaceButton: []
   hapticAction:
     actionPath: /actions/default/out/Haptic
     needsReinit: 0
