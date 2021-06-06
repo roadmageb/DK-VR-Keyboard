@@ -75,7 +75,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   keyboardMode: 0
-  saveDataName: ryu
   worldSpaceParent: {fileID: 563095775}
   keycodeTranslation:
   - keycode: 96
@@ -242,6 +241,7 @@ MonoBehaviour:
   - keycode: 32
     str: ' '
     onBoard: Space
+  saveDataName: ryu
   defaultSet: 1
   defaultKeyboardScale: {x: 2, y: 2}
   layoutList:
@@ -252,7 +252,8 @@ MonoBehaviour:
     binding:
     - {fileID: 4900000, guid: 47cd8469287ecd44a80ffb819a8ad068, type: 3}
     - {fileID: 4900000, guid: 1aa5a8c382025ab46abb7ba646689df7, type: 3}
-  layoutIndex: 0
+  currentLayoutName: basic
   leftKeyCodes: 710000007700000065000000720000007400000061000000730000006400000066000000670000007a0000007800000063000000760000006200000020000000
   rightKeyCodes: 080000007900000075000000690000006f00000070000000680000006a0000006b0000006c000000270000000d000000620000006e0000006d0000002c0000002e00000020000000
   entryExitTrigger: 
+  initialLearningCount: 0

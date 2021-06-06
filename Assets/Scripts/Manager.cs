@@ -9,7 +9,6 @@ public class Manager : Singleton<Manager>
     [Header("General Settings")]
     public KeyboardMode keyboardMode;
     private string jsonPath;
-    public string saveDataName;
     public Transform worldSpaceParent;
     public ControllerPointer[] controllerPointers { get; private set; } = new ControllerPointer[2];
     private EntryState _entryState;
@@ -29,14 +28,16 @@ public class Manager : Singleton<Manager>
     public Dictionary<KeyCode, (string str, string onBoard)> keycodeStringDict;
 
     [Header("DK Keyboard Settings")]
+    public string saveDataName;
     [SerializeField] private bool defaultSet;
     public Vector2 defaultKeyboardScale;
     private Vector2 currentKeyboardScale;
     [SerializeField] private DKLayoutPreset[] layoutList;
-    [SerializeField] private int layoutIndex;
+    [SerializeField] private string currentLayoutName;
     private Texture2D[] presets;
     [SerializeField] private KeyCode[] leftKeyCodes, rightKeyCodes;
     [HideInInspector] public bool[] entryExitTrigger;
+    [SerializeField] private int initialLearningCount;
 
     [Header("Basline Keyboard Settings")]
     private float baselineKeyboardSize;
@@ -81,12 +82,15 @@ public class Manager : Singleton<Manager>
 
     private void ImportLayout()
     {
-        if (layoutIndex < layoutList.Length)
+        foreach(DKLayoutPreset layout in layoutList)
         {
-            DKLayoutPreset currentLayout = layoutList[layoutIndex];
-            presets = currentLayout.image;
-            leftKeyCodes = JsonConvert.DeserializeObject<KeyCode[]>(currentLayout.binding[0].text);
-            rightKeyCodes = JsonConvert.DeserializeObject<KeyCode[]>(currentLayout.binding[1].text);
+            if (layout.name == currentLayoutName)
+            {
+                presets = layout.image;
+                leftKeyCodes = JsonConvert.DeserializeObject<KeyCode[]>(layout.binding[0].text);
+                rightKeyCodes = JsonConvert.DeserializeObject<KeyCode[]>(layout.binding[1].text);
+                break;
+            }
         }
     }
 
@@ -111,22 +115,20 @@ public class Manager : Singleton<Manager>
             try
             {
                 string str = File.ReadAllText(jsonPath);
-                KeyboardJson keyJson = JsonUtility.FromJson<KeyboardJson>(str);
+                KeyboardJson keyJson = JsonConvert.DeserializeObject<KeyboardJson>(str);
+
+                currentLayoutName = keyJson.layoutName;
+                ImportLayout();
+
                 SpherePolygon safeDefault = DefaultKeyboard(hand, keyJson.originScale);
                 currentKeyboardScale = keyJson.originScale;
-                Dictionary<KeyCode, Vector2> centroids = new Dictionary<KeyCode, Vector2>();
 
-                Vector2[] targetVArr = hand == Hand.LEFT ? keyJson.leftCentroids : keyJson.rightCentroids;
-                KeyCode[] targetKArr = hand == Hand.LEFT ? leftKeyCodes : rightKeyCodes;
-
-                int i = 0;
-                foreach(KeyCode k in targetKArr) centroids[k] = targetVArr[i++];
-
-                return new SpherePolygon(new List<Vector2>(
-                    hand == Hand.LEFT ? keyJson.leftVertices : keyJson.rightVertices),
+                return new SpherePolygon(
+                    hand == Hand.LEFT ? keyJson.leftVertices : keyJson.rightVertices,
                     safeDefault.adjCenters,
                     safeDefault.polygons,
-                    centroids);
+                    hand == Hand.LEFT ? keyJson.leftCentroids : keyJson.rightCentroids,
+                    hand == Hand.LEFT ? keyJson.leftLearnCount : keyJson.rightLearnCount);
             }
             catch (DirectoryNotFoundException)
             {
@@ -142,28 +144,20 @@ public class Manager : Singleton<Manager>
     }
     public void SaveKeyboard()
     {
-        List<Vector2>[] centroidList = new List<Vector2>[2];
-
-        for(int i = 0; i < 2; i++)
-        {
-            KeyCode[] target = i == 0 ? leftKeyCodes : rightKeyCodes;
-            centroidList[i] = new List<Vector2>();
-            foreach(KeyCode k in target)
-            {
-                centroidList[i].Add(controllerPointers[i].myPolygon.centroids[k]);
-            }
-        }
 
         KeyboardJson keyJson = new KeyboardJson(
+            currentLayoutName,
             currentKeyboardScale, 
-            controllerPointers[0].myPolygon.vertices.ToArray(), 
-            controllerPointers[1].myPolygon.vertices.ToArray(),
-            centroidList[0].ToArray(),
-            centroidList[1].ToArray());
+            controllerPointers[0].myPolygon.vertices, 
+            controllerPointers[1].myPolygon.vertices,
+            controllerPointers[0].myPolygon.centroids,
+            controllerPointers[1].myPolygon.centroids,
+            controllerPointers[0].myPolygon.learnCount,
+            controllerPointers[1].myPolygon.learnCount);
 
         string dir = jsonPath.Substring(0, jsonPath.LastIndexOf('/') + 1);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-        File.WriteAllText(jsonPath, JsonUtility.ToJson(keyJson));
+        File.WriteAllText(jsonPath, JsonConvert.SerializeObject(keyJson));
     } 
     /// <summary>
     /// 
@@ -179,6 +173,7 @@ public class Manager : Singleton<Manager>
         List<Vector2> centroids = new List<Vector2>();
         List<int> loopVertices = new List<int>();
         Dictionary<KeyCode, List<int>> polygons = new Dictionary<KeyCode, List<int>>();
+        Dictionary<KeyCode, int> learnCount = new Dictionary<KeyCode, int>();
         List<List<KeyCode>> adjCenters = new List<List<KeyCode>>();
 
         //convert points in image to vertices, centerPoints, keyVertices, loopVertices, origin
@@ -240,6 +235,7 @@ public class Manager : Singleton<Manager>
             }
 
             polygons.Add(loopKey, arr);
+            learnCount.Add(loopKey, initialLearningCount);
             codeidx++;
         }
 
@@ -265,6 +261,7 @@ public class Manager : Singleton<Manager>
             if (t) retCentroids.Add(key, centroid);
         }
         ret.centroids = retCentroids;
+        ret.learnCount = learnCount;
 
         return ret;
     }

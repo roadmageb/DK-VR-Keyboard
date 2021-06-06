@@ -23,7 +23,7 @@ public class SpherePolygon
     /// center points of each polygons
     /// </summary>
     public Dictionary<KeyCode, Vector2> centroids;
-
+    public Dictionary<KeyCode, int> learnCount;
     public Dictionary<KeyCode, List<(Vector2 v, float w)>> learningLog;
 
     private float maxStepDistance = 10;
@@ -35,12 +35,19 @@ public class SpherePolygon
         adjCenters = _adjCenters;
         polygons = _polygons;
     }
-    public SpherePolygon(List<Vector2> _vertices, List<List<KeyCode>> _adjCenters, Dictionary<KeyCode, List<int>> _polygons, Dictionary<KeyCode, Vector2> _centroids)
+    public SpherePolygon(
+        List<Vector2> _vertices,
+        List<List<KeyCode>> _adjCenters,
+        Dictionary<KeyCode, List<int>> _polygons,
+        Dictionary<KeyCode, Vector2> _centroids,
+        Dictionary<KeyCode, int> _learnCount
+        )
     {
         vertices = _vertices;
         adjCenters = _adjCenters;
         polygons = _polygons;
         centroids = _centroids;
+        learnCount = _learnCount;
     }
 
     public bool GetPointedKey(Vector2 target, out KeyCode key)
