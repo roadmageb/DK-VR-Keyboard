@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Valve.VR;
 
 public class ControllerPointer : MonoBehaviour
@@ -20,7 +21,7 @@ public class ControllerPointer : MonoBehaviour
 
     [SerializeField] private Transform centerRay, forwardRay;
     [SerializeField] private LineRenderer pointRay;
-    [SerializeField] private TextMesh text;
+    [SerializeField] private Text text;
     [SerializeField] private Transform cam;
     [SerializeField] private GameObject keyLinePrefab;
     [SerializeField] private float keyLineRadius;
@@ -76,7 +77,6 @@ public class ControllerPointer : MonoBehaviour
                 currentTextBox.ProcessKeyCode(key);
             }
             text.text = key.ToString();
-            text.transform.LookAt(cam, Vector3.up);
         }
         else
         {

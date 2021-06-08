@@ -37,7 +37,8 @@ public class Manager : Singleton<Manager>
     private Texture2D[] presets;
     [SerializeField] private KeyCode[] leftKeyCodes, rightKeyCodes;
     [HideInInspector] public bool[] entryExitTrigger;
-    [SerializeField] private int initialLearningCount;
+    [SerializeField] private int initialLearnCount;
+    [SerializeField] private float initialLearnVariance;
 
     [Header("Basline Keyboard Settings")]
     private float baselineKeyboardSize;
@@ -123,14 +124,16 @@ public class Manager : Singleton<Manager>
                 SpherePolygon safeDefault = DefaultKeyboard(hand, keyJson.originScale);
                 currentKeyboardScale = keyJson.originScale;
 
-                Debug.Log(safeDefault.polygons.Count);
+                int h = (int)hand;
 
                 return new SpherePolygon(
-                    hand == Hand.LEFT ? keyJson.leftVertices : keyJson.rightVertices,
+                    keyJson.vertices[h],
                     safeDefault.adjCenters,
                     safeDefault.polygons,
-                    hand == Hand.LEFT ? keyJson.leftCentroids : keyJson.rightCentroids,
-                    hand == Hand.LEFT ? keyJson.leftLearnCount : keyJson.rightLearnCount);
+                    keyJson.centroids[h],
+                    keyJson.learnCounts[h],
+                    keyJson.learnVariance[h],
+                    safeDefault.safeDistance);
             }
             catch (DirectoryNotFoundException)
             {
@@ -146,16 +149,13 @@ public class Manager : Singleton<Manager>
     }
     public void SaveKeyboard()
     {
-
         KeyboardJson keyJson = new KeyboardJson(
             currentLayoutName,
-            currentKeyboardScale, 
-            controllerPointers[0].myPolygon.vertices, 
-            controllerPointers[1].myPolygon.vertices,
-            controllerPointers[0].myPolygon.centroids,
-            controllerPointers[1].myPolygon.centroids,
-            controllerPointers[0].myPolygon.learnCount,
-            controllerPointers[1].myPolygon.learnCount);
+            currentKeyboardScale,
+            new List<Vector2>[] { controllerPointers[0].myPolygon.vertices, controllerPointers[1].myPolygon.vertices },
+            new Dictionary<KeyCode, Vector2>[] { controllerPointers[0].myPolygon.centroids, controllerPointers[1].myPolygon.centroids},
+            new Dictionary<KeyCode, int>[] { controllerPointers[0].myPolygon.learnCount, controllerPointers[1].myPolygon.learnCount },
+            new Dictionary<KeyCode, Vector2>[] { controllerPointers[0].myPolygon.learnVariance, controllerPointers[1].myPolygon.learnVariance });
 
         string dir = jsonPath.Substring(0, jsonPath.LastIndexOf('/') + 1);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
@@ -176,7 +176,9 @@ public class Manager : Singleton<Manager>
         List<int> loopVertices = new List<int>();
         Dictionary<KeyCode, List<int>> polygons = new Dictionary<KeyCode, List<int>>();
         Dictionary<KeyCode, int> learnCount = new Dictionary<KeyCode, int>();
+        Dictionary<KeyCode, Vector2> learnVariance = new Dictionary<KeyCode, Vector2>();
         List<List<KeyCode>> adjCenters = new List<List<KeyCode>>();
+        List<Dictionary<KeyCode, Vector2>> safeDistance = new List<Dictionary<KeyCode, Vector2>>();
 
         //convert points in image to vertices, centerPoints, keyVertices, loopVertices, origin
         for (int j = presets[handidx].height - 1; j >= 0; j--)
@@ -201,13 +203,16 @@ public class Manager : Singleton<Manager>
             }
         }
 
-        //init adjCenters
-        foreach (Vector2 v in vertices) adjCenters.Add(new List<KeyCode>());
+        //init adjCenters, safeDistance
+        foreach (Vector2 v in vertices)
+        {
+            adjCenters.Add(new List<KeyCode>());
+            safeDistance.Add(new Dictionary<KeyCode, Vector2>());
+        }
 
         //check each loop, construct adjCenters
         Vector2[] dirVec = new Vector2[] { new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0), new Vector2(0, 1) };
         int codeidx = 0;
-        Debug.Log(loopVertices.Count);
         foreach (int loop in loopVertices)
         {
             Vector2 pos = new Vector2(vertices[loop].x, vertices[loop].y);
@@ -216,8 +221,15 @@ public class Manager : Singleton<Manager>
             pos += dirVec[dir];
 
             List<int> arr = new List<int>();
-            arr.Add(loop);
-            adjCenters[loop].Add(loopKey);
+
+            Action<int> actionPerPoint = (x) =>
+            {
+                arr.Add(x);
+                adjCenters[x].Add(loopKey);
+                safeDistance[x].Add(loopKey, pos);
+            };
+
+            actionPerPoint(loop);
 
             while (!pos.Equals(vertices[loop]))
             {
@@ -230,15 +242,14 @@ public class Manager : Singleton<Manager>
                     if (!nextPixel.Equals(Color.white)) dir = (dir + 1) % 4;
 
                     int cIdx = vertices.FindIndex(x => x.Equals(pos));
-
-                    arr.Add(cIdx);
-                    adjCenters[cIdx].Add(loopKey);
+                    actionPerPoint(cIdx);
                 }
                 pos += dirVec[dir];
             }
 
             polygons.Add(loopKey, arr);
-            learnCount.Add(loopKey, initialLearningCount);
+            learnCount.Add(loopKey, initialLearnCount);
+            learnVariance.Add(loopKey, new Vector2(initialLearnVariance, initialLearnVariance));
             codeidx++;
         }
 
@@ -255,6 +266,8 @@ public class Manager : Singleton<Manager>
             centroids[i] *= scale;
         }
 
+
+
         SpherePolygon ret = new SpherePolygon(vertices, adjCenters, polygons);
         Dictionary<KeyCode, Vector2> retCentroids = new Dictionary<KeyCode, Vector2>();
 
@@ -263,8 +276,21 @@ public class Manager : Singleton<Manager>
             bool t = ret.GetPointedKey(centroid, out KeyCode key);
             if (t) retCentroids.Add(key, centroid);
         }
+
+        foreach (Dictionary<KeyCode, Vector2> dict in safeDistance)
+        {
+            KeyCode[] keys = new KeyCode[dict.Keys.Count];
+            dict.Keys.CopyTo(keys, 0);
+            foreach (KeyCode k in keys)
+            {
+                dict[k] = (dict[k] - origin) * scale - retCentroids[k];
+            }
+        }
+
         ret.centroids = retCentroids;
         ret.learnCount = learnCount;
+        ret.learnVariance = learnVariance;
+        ret.safeDistance = safeDistance;
 
         return ret;
     }

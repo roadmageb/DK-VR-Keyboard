@@ -24,7 +24,9 @@ public class SpherePolygon
     /// </summary>
     public Dictionary<KeyCode, Vector2> centroids;
     public Dictionary<KeyCode, int> learnCount;
+    public Dictionary<KeyCode, Vector2> learnVariance;
     public Dictionary<KeyCode, List<(Vector2 v, float w)>> learningLog;
+    public List<Dictionary<KeyCode, Vector2>> safeDistance;
 
     private float maxStepDistance = 5;
 
@@ -39,7 +41,9 @@ public class SpherePolygon
         List<List<KeyCode>> _adjCenters,
         Dictionary<KeyCode, List<int>> _polygons,
         Dictionary<KeyCode, Vector2> _centroids,
-        Dictionary<KeyCode, int> _learnCount
+        Dictionary<KeyCode, int> _learnCount,
+        Dictionary<KeyCode, Vector2> _learnVariance,
+        List<Dictionary<KeyCode, Vector2>> _safeDistance
         )
     {
         vertices = _vertices;
@@ -47,6 +51,8 @@ public class SpherePolygon
         polygons = _polygons;
         centroids = _centroids;
         learnCount = _learnCount;
+        learnVariance = _learnVariance;
+        safeDistance = _safeDistance;
     }
 
     public bool GetPointedKey(Vector2 target, out KeyCode key)
@@ -93,22 +99,22 @@ public class SpherePolygon
 
     public void StepLearning(KeyCode key, Vector2 pos)
     {
-        Vector2 moveVec = (pos - centroids[key]) / (learnCount[key] + 1);
-        //if (moveVec.magnitude > maxStepDistance) moveVec = moveVec.normalized * maxStepDistance;
-
-        foreach (int idx in polygons[key])
-        {
-            float weightSum = 0, weightTarget = 0;
-            foreach(KeyCode ctr in adjCenters[idx])
-            {
-                float dist = 1f / Mathf.Max(Vector2.Distance(centroids[ctr], vertices[idx]), 0.0001f);
-                weightSum += dist;
-                if (ctr == key) weightTarget = dist;
-            }
-            vertices[idx] += moveVec * (weightTarget / weightSum);
-        }
-
-        centroids[key] += moveVec;
+        Vector2 sqrMean = learnVariance[key] + centroids[key] * centroids[key];
+        centroids[key] = (pos + centroids[key] * learnCount[key]) / (learnCount[key] + 1);
+        learnVariance[key] = (pos * pos + sqrMean * learnCount[key]) / (learnCount[key] + 1) - centroids[key] * centroids[key];
         learnCount[key]++;
+
+        for (int i = 0; i < vertices.Count; i++)
+        {
+            Vector2 target = new Vector2();
+            float weightTotal = 0;
+            foreach (KeyCode k in safeDistance[i].Keys)
+            {
+                float w = 1f / learnVariance[key].magnitude;
+                target += (centroids[k] + safeDistance[i][k]) * w;
+                weightTotal += w;
+            }
+            vertices[i] = target / weightTotal;
+        }
     }
 }

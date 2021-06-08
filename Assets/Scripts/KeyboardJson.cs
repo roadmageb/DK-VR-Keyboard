@@ -6,29 +6,23 @@ public class KeyboardJson
 {
     public string layoutName;
     public Vector2 originScale;
-    public List<Vector2> leftVertices;
-    public List<Vector2> rightVertices;
-    public Dictionary<KeyCode, Vector2> leftCentroids;
-    public Dictionary<KeyCode, Vector2> rightCentroids;
-    public Dictionary<KeyCode, int> leftLearnCount;
-    public Dictionary<KeyCode, int> rightLearnCount;
+    public List<Vector2>[] vertices;
+    public Dictionary<KeyCode, Vector2>[] centroids;
+    public Dictionary<KeyCode, int>[] learnCounts;
+    public Dictionary<KeyCode, Vector2>[] learnVariance;
     public KeyboardJson(
         string name,
         Vector2 scale,
-        List<Vector2> l,
-        List<Vector2> r,
-        Dictionary<KeyCode, Vector2> lc,
-        Dictionary<KeyCode, Vector2> rc,
-        Dictionary<KeyCode, int> ll,
-        Dictionary<KeyCode, int> rl)
+        List<Vector2>[] v,
+        Dictionary<KeyCode, Vector2>[] c,
+        Dictionary<KeyCode, int>[] cnt,
+        Dictionary<KeyCode, Vector2>[] var)
     {
         layoutName = name;
         originScale = scale;
-        leftVertices = l;
-        rightVertices = r;
-        leftCentroids = lc;
-        rightCentroids = rc;
-        leftLearnCount = ll;
-        rightLearnCount = rl;
+        vertices = v;
+        centroids = c;
+        learnCounts = cnt;
+        learnVariance = var;
     }
 }
