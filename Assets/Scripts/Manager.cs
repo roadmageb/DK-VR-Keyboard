@@ -123,6 +123,8 @@ public class Manager : Singleton<Manager>
                 SpherePolygon safeDefault = DefaultKeyboard(hand, keyJson.originScale);
                 currentKeyboardScale = keyJson.originScale;
 
+                Debug.Log(safeDefault.polygons.Count);
+
                 return new SpherePolygon(
                     hand == Hand.LEFT ? keyJson.leftVertices : keyJson.rightVertices,
                     safeDefault.adjCenters,
@@ -205,6 +207,7 @@ public class Manager : Singleton<Manager>
         //check each loop, construct adjCenters
         Vector2[] dirVec = new Vector2[] { new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0), new Vector2(0, 1) };
         int codeidx = 0;
+        Debug.Log(loopVertices.Count);
         foreach (int loop in loopVertices)
         {
             Vector2 pos = new Vector2(vertices[loop].x, vertices[loop].y);

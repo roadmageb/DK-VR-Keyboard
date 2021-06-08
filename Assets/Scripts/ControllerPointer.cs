@@ -230,7 +230,10 @@ public class ControllerPointer : MonoBehaviour
     private void Start()
     {
         Manager.Inst.InitContorllerPointer(hand, this);
-        SetDefaultKeyboard();
+        if (Manager.Inst.keyboardMode == KeyboardMode.DK)
+        {
+            SetDKKeyboard();
+        }
         if(new List<string> {"rift"}.Contains(SteamVR.instance.hmd_Type))
         {
             forwardTransform.eulerAngles = new Vector3(45, 0, 0);
@@ -243,7 +246,7 @@ public class ControllerPointer : MonoBehaviour
         foreach (LineRenderer l in keyLines) l.enabled = active;
         foreach (TextMesh t in keyTexts) t.gameObject.SetActive(active);
     }
-    private void SetDefaultKeyboard()
+    private void SetDKKeyboard()
     {
         myPolygon = Manager.Inst.GetKeyboard(hand);
         keyLines = new LineRenderer[myPolygon.polygons.Count];

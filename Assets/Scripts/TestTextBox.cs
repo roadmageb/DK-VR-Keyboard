@@ -56,11 +56,6 @@ public class TestTextBox : TextEntryBox
             remainSentence.RemoveAt(rnd);
             entryText = "";
             startTime = Time.realtimeSinceStartup;
-            totalLetter = 0;
-            totalTime = 0;
-            totalType = 0;
-            totalTypo = 0;
-            currentPart = 0;
             return true;
         }
         return false;
@@ -79,6 +74,7 @@ public class TestTextBox : TextEntryBox
                 {
                     totalTime += Time.realtimeSinceStartup - startTime;
                     totalLetter += currentSentence.Length;
+                    currentPart = 0;
                     if(!ChangeSentence())
                     {
                         SaveTestResult();
@@ -120,7 +116,7 @@ public class TestTextBox : TextEntryBox
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
         int n = 0;
-        Func<int, string> filePath = (x) => dir + TestManager.Inst.testName + "/" + "_" + x.ToString("000") + ".json";
+        Func<int, string> filePath = (x) => dir + "/" + TestManager.Inst.testName + "_" + x.ToString("000") + ".json";
         for (; File.Exists(filePath(n)); n++) ;
 
         File.WriteAllText(filePath(n), JsonConvert.SerializeObject(result));
@@ -129,6 +125,10 @@ public class TestTextBox : TextEntryBox
     {
         remainSentence = new List<string>(TestManager.Inst.sentenceBase);
         ChangeSentence();
+        totalType = 0;
+        totalTypo = 0;
+        totalLetter = 0;
+        totalTime = 0;
         startTime = -1;
     }
     public override void EndEdit()

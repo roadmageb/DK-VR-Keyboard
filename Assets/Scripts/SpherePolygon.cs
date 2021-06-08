@@ -26,8 +26,7 @@ public class SpherePolygon
     public Dictionary<KeyCode, int> learnCount;
     public Dictionary<KeyCode, List<(Vector2 v, float w)>> learningLog;
 
-    private float maxStepDistance = 10;
-    private float learningRate = 0.3f;
+    private float maxStepDistance = 5;
 
     public SpherePolygon (List<Vector2> _vertices, List<List<KeyCode>> _adjCenters, Dictionary<KeyCode, List<int>> _polygons)
     {
@@ -86,17 +85,16 @@ public class SpherePolygon
         }
     }
 
-    public void InitLearning(float maxDist, float lr)
+    public void InitLearning(float maxDist)
     {
         maxStepDistance = maxDist;
-        learningRate = lr;
         InitLearning();
     }
 
     public void StepLearning(KeyCode key, Vector2 pos)
     {
-        Vector2 moveVec = (pos - centroids[key]) * learningRate;
-        if (moveVec.magnitude > maxStepDistance * learningRate) moveVec = moveVec.normalized * maxStepDistance * learningRate;
+        Vector2 moveVec = (pos - centroids[key]) / (learnCount[key] + 1);
+        //if (moveVec.magnitude > maxStepDistance) moveVec = moveVec.normalized * maxStepDistance;
 
         foreach (int idx in polygons[key])
         {
@@ -111,5 +109,6 @@ public class SpherePolygon
         }
 
         centroids[key] += moveVec;
+        learnCount[key]++;
     }
 }
