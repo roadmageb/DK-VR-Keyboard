@@ -75,6 +75,7 @@ public class ControllerPointer : MonoBehaviour
                     }
                 }
                 currentTextBox.ProcessKeyCode(key);
+                hapticAction.Execute(0, 0.03f, 100, 200, input);
             }
             text.text = key.ToString();
         }
@@ -100,7 +101,7 @@ public class ControllerPointer : MonoBehaviour
 
         if (previousKeyBool != pointed || previousKeyCode != key)
         {
-            hapticAction.Execute(0, 0.01f, 100, 100, input);
+            //hapticAction.Execute(0, 0.01f, 100, 100, input);
         }
         previousKeyBool = pointed;
         previousKeyCode = key;
