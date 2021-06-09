@@ -43,7 +43,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6c680be15fe48c409dd09a22a9522e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  testName: testee1
+  testName: me_DK
   savePath: /testdata/
   sentenceBase:
   - everybody has gone home.
@@ -56,3 +56,8 @@ MonoBehaviour:
   - i will take the xylophone.
   - swim faster like a dolphin.
   - yesterday, my joints hurt, so i rested.
+  csvTestNames:
+  - me_BS
+  - me_DK
+  csvPath: /csv/
+  csvWriteOnStart: 0
