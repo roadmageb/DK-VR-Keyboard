@@ -21,6 +21,7 @@ public class ControllerPointer : MonoBehaviour
 
     [SerializeField] private Transform centerRay, forwardRay;
     [SerializeField] private LineRenderer pointRay;
+    [SerializeField] private LineRenderer pointRing;
     [SerializeField] private Text text;
     [SerializeField] private Transform cam;
     [SerializeField] private GameObject keyLinePrefab;
@@ -30,6 +31,7 @@ public class ControllerPointer : MonoBehaviour
     [SerializeField] private GameObject keyTextPrefab;
     [SerializeField] private float keyTextSize;
     [SerializeField] private Color keyTextColor;
+    [SerializeField] private Color PointRingColor;
     private TextMesh[] keyTexts;
 
     private EntryState entryState;
@@ -144,6 +146,12 @@ public class ControllerPointer : MonoBehaviour
             keyTexts[idx].text = Manager.Inst.keycodeStringDict[k].onBoard;
             idx++;
         }
+        gradient = new Gradient();
+        gradient.SetKeys(
+            new GradientColorKey[] { new GradientColorKey(PointRingColor, 0f), new GradientColorKey(PointRingColor, 1f) },
+            new GradientAlphaKey[] { new GradientAlphaKey(alpha, 0f), new GradientAlphaKey(alpha, 1f) });
+        pointRing.colorGradient = gradient;
+        pointRing.transform.localPosition = new Vector3(0, 0, keyLineRadius);
     }
     private void BaselineKeyboardInteraction()
     {
